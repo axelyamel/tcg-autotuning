@@ -1,15 +1,18 @@
 Tensor-Contraction Generator and Autotuning
 ===========================================
 
-The Tensor-Contraction generator is a Python program which generate C code based on a TC input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS. 
+The Tensor-Contraction generator is a Python program which generate C code based on a TC input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS. It also generates a CUDA-CHiLL script, which can be use with the C code to transform it into CUDA code through CUDA-CHiLL. 
 
 Developer:
 
-        Axel Y. Rivera
+	Axel Y. Rivera
 	University of Utah
 	axel.rivera at utah.edu
 
 Updates:
+
+	v0.3:  Very naive CUDA-CHiLL scripts generation added: just check the loop access and
+		decides what goes for threads, blocks, register and permute.
 
 	v0.25: Support for higher abstraction.
 	       User can now define a Tensor by the order without specify the dimensions' sizes.
@@ -47,6 +50,12 @@ Files:
 		nek.m		|	TC in Nekbone
 		tce.m		|	TC s1 presented in NWCHEM
 		tce2.m		|	TC d1 presented in NWCHEM
+
+Install:
+
+	Just run it through Python. For use the CUDA-CHiLL script, you must download and install 
+	it by your own.
+		CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
 
 Use:
 

@@ -1,6 +1,7 @@
 from InputFile import *
 from Transform import *
 from CodeGen import *
+from Autotuning import *
 
 import sys
 import os
@@ -86,7 +87,10 @@ print "Generating Code"
 z = CodeGen(y)
 if info == 1:
 	z.printCode()
-
 if codegen == 1:
 	z.OutToFile(OutputFile)
 	print "Output file: ",OutputFile
+
+print "Generating CUDA-CHiLL scripts"
+auto = Autotuning(x)
+auto.getScript()
