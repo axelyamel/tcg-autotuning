@@ -3,9 +3,11 @@ Tensor-Contraction Generator and Autotuning
 
 The Tensor-Contraction generator is a Python program which generate C code based on a TC input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS. 
 
-Developed by: Axel Y. Rivera
-	      University of Utah
-	      axel.rivera@utah.edu
+Developer:
+
+        Axel Y. Rivera
+	University of Utah
+	axel.rivera at utah.edu
 
 Updates:
 
