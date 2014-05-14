@@ -1,11 +1,13 @@
-Tensor-Contraction Generator and Autotuning
-===========================================
-
-The Tensor-Contraction generator is a Python program which generate C code based on a TC input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS. 
-
+Tensor-Contraction Generator v0.25
 Developed by: Axel Y. Rivera
 	      University of Utah
 	      axel.rivera@utah.edu
+
+Overview:
+
+	The Tensor-Contraction generator is a Python program which generate C code 
+	based on a TC input. The TCG input is based on the Tensor-Contration Engine
+	and Build To Order BLAS.
 
 Updates:
 
@@ -13,9 +15,9 @@ Updates:
 	       User can now define a Tensor by the order without specify the dimensions' sizes.
 	       "jumping" value is now "strided"
 	       "inline" value is now "linearize"
-	       "io" sectiond added, this is for declaring tensors that are input as well outputs. 
+	       "io" sectiond added, this is to declare tensors that are input as well outputs. 
 		This section was created due to the definition of Input and Ouput.
-	       Fixed bugs in the output code where a variable was input and output.
+	       Fix bugs in the output code.
 	
 
 	v0.2:  Support for higher abstraction. 
@@ -102,10 +104,5 @@ Know bugs:
 
 	Currently works for binary operations (1 output, 2 inputs)
 	For reduction use C shortcuts (use a+= rather than a=a+)
-	Tab needed for writing the variables in input, output and io sections.
-	Tab needed for writing the operations.
-	Space needed between definitions and operations:
-		* use N = 10 rather than N=10
-		* use C:(i,j) += A:(i,k) * B:(k,j) rather than C:(i,j)+=A:(i,k)*B:(k,j)
 
 
