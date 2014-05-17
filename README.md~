@@ -15,7 +15,7 @@ Updates:
 	       Cleaner implementation using Python Dictionaries.
     	       Fixed the tab and spaces in the input. Now user can use tab, spaces or non of
 		them when writing start of lines, as well between assignations and operators.
-	       Output now don't use C Compound assignment (+=), however it is needed in the
+	       Output now don't use C Compound assignment (+=), still it is needed in the
 		input because it represents the summation symbol for the Einstein Notation.
 	       Input, Output and IO section were fused in one section: "variables".
 	       "defines" section was renemade to "define".
@@ -126,13 +126,13 @@ Input file:
 Notes:
 
 	Use the C Compound assignment (+=) to express reductions. It represents the classical
-	summation symbol in mathematics. This is used to represent the Einstein's Notation
+	summation symbol in mathematics. Thsi produce a translation of the Einstein's Notation
 	for Tensors.
 	Each operation is binary (one output and two inputs) because of the definition of 
 	Tensor-Contraction.
 	Autotuning still a work in progress (WiP), don't use it for now and wait for future update.
 					
-Known bugs:
+Know bugs:
 
 	Parameters order in the function declaration of the output file can be random. This
 	is caused by the dictionaries.
