@@ -1,96 +1,58 @@
 from Transform import *
+import datetime
 
 class CodeGen:
 
 	def __init__(self,transOps):
 
-		self.TransOp = transOps
+		self.transformOP = transOps
+		self.transOP = self.transformOP.getTransOp()
+		self.inFile = self.transformOP.getInputFile()
+		self.Defines = self.inFile.getDefines()
+		self.dVars = self.inFile.getVariables()
+		self.funcName = self.inFile.getFuncName()
+		self.access = self.inFile.getAccess()
+		self.Index = self.transformOP.getLoopsIndeces()
+		now = datetime.datetime.now()
 
-		self.inputF = self.TransOp.getInputFile()
-
-		self.defines = self.inputF.getDefines()
-
-		self.inputs = self.inputF.getInputs()
-		self.outputs = self.inputF.getOutputs()
-		self.funcName = self.inputF.getFuncName()
-		self.access = self.inputF.getAccess()
-		self.loops = self.TransOp.getLoopsIndeces()
-		self.Ops = self.TransOp.getTransOp()
-
-		defs = ''
-
-		for key,value in self.defines.items():
-
-			defs = defs + '#define '+key+' '+value+'\n'
-
-
-		func = '\nvoid '+self.funcName+'('
-
-		for key,value in self.inputs.items():
-			addVar = ''
-			splitS = re.split(',',value['size'])
-
-			for vi in splitS:
-				if vi.isdigit() == False:
-					defined = 0
-					vi2 = re.split('(\*)',vi)
-					if len(vi2) > 2:
-						if vi2[1] == '*':
-							defined = 1
-					for key2,value2 in self.defines.items():
-						if vi == key2:
-							defined = 1
-							break
-					if defined == 0:
-						addVar = addVar + 'int '+vi+','
-
-			if self.access == 'linearize':
-				addVar = addVar + 'double *'+key+','
-			elif self.access == 'multidimension':
-				addVar = addVar + 'double '+key+'['
-				sp = re.sub(',','][',value['size'])
-				addVar = addVar+sp+'],'
-			func = func + addVar
-
-		for key,value in self.outputs.items():
-			addVar = ''
-			splitS = re.split(',',value['size'])
-
-			for vi in splitS:
-				if vi.isdigit() == False:
-					defined = 0
-					for key2,value2 in self.defines.items():
-						if vi == key2:
-							defined = 1
-							break
-					if defined == 0:
-						addVar = addVar + 'int '+vi+','
-
-			if self.access == 'linearize':
-				addVar = addVar + 'double *'+key+','
-			elif self.access == 'multidimension':
-				addVar = addVar + 'double '+key+'['
-				sp = re.sub(',','][',value['size'])
-				addVar = addVar+sp+'],'
-			func = func + addVar
-
-		func = func[:-1]
-		func = func + '){\n\n'
-	
-		body = ''
-
-		for i in self.loops:
-
-			body = body + '\tint ' + i + ';\n'
-
-		body = body + '\n'
-
-		for j in self.Ops:
-			body = body + j + '\n'
+		self.Stamp = '/*This code was generated using the Tensor-Contraction Autotuning tool,\ndeveloped by Axel Y. Rivera (University of Utah).\nCode Generated Date and hour: ' + now.strftime("%Y-%m-%d %H:%M") + '*/\n\n'
+		self.code = self.Stamp
+		self.func = ''
+		self.body = ''
 		
-		body = body + '}'
 		
-		self.code = defs + func + body
+		for key,value in self.Defines.items():
+
+			self.code = self.code + '#define ' + key + ' ' + str(value) + '\n'
+		self.code = self.code + '\nvoid ' + self.funcName + '('
+		for key,value in self.dVars.items():
+
+			sizes = filter(None,re.split(',|\*',value['size']))
+
+			for i in sizes:
+				if i not in self.Defines:
+					self.code = self.code + 'int ' + i + ', '
+
+			if self.access == 'multidimension':
+				varT = re.sub(',','][',value['size'])
+				self.code = self.code + 'double ' + key + '[' + varT +'], '
+			elif self.access == 'linearize':
+				self.code = self.code + 'double *' + key + ', '
+
+		self.code = self.code[:-2] + '){\n\n\tint '
+
+		for i in self.Index:
+			self.code = self.code + i + ', '
+		self.code = self.code[:-2] + ';\n\n'
+
+		for i in self.transOP:
+
+			self.code = self.code + i['loopGen'] + i['operation'] +';' + i['close']
+
+		self.code = self.code + '}'
+
+		
+
 
 		
 	def printCode(self):

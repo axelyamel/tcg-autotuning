@@ -18,15 +18,12 @@ class InputFile:
 		self.accelerator = ''
 		self.memory = ''
 		self.pattern = ''
-		self.inputs = {}
-		self.outputs = {}
+		self.variables = {}
 		self.defines = {}
 		self.operation = []
 		defs = 0
-		inps = 0
-		outs = 0
 		ops = 0
-		ioputs = 0
+		varsIO = 0
 
 		mem=0
 		accel = 0
@@ -34,214 +31,128 @@ class InputFile:
 		patt =0
 
 		for line in self.filew:
-			splitL = re.split('\t| |: | \n|:|\n',line)
-			if splitL[0] == 'access':
-				defs = 0
-				inps = 0
-				outs = 0
-				ops = 0
-				acc = 1
-				ioputs = 0
-				self.access = splitL[1]
-			if splitL[0] == 'pattern':
-				defs = 0
-				inps = 0
-				outs = 0
-				ops = 0
-				patt =1
-				ioputs=0
-				self.pattern = splitL[1]
+			splitL = re.split('\t| |: | \n|:|\n|=',line)
+			splitL = filter(None, splitL)
+			start = 1
 
-			if splitL[0] == 'accelerator':
-				defs = 0
-				inps = 0
-				outs = 0
-				ops = 0
-				accel = 0
-				ioputs=0
-				self.accelerator = splitL[1]
-			if splitL[0] == 'memory':
-				defs = 0
-				inps = 0
-				outs = 0
-				ops = 0
-				mem = 1
-				ioputs=0
-				self.memory = splitL[1]
+			if len(splitL) > 0:
+				if splitL[0] == 'access':
+					defs = 0
+					varsIO=0
+					ops = 0
+					acc = 1
+					self.access = splitL[1]
+					start = 0
 
-			if splitL[0] == 'defines':
-				defs = 1
-				inps = 0
-				outs = 0
-				ops = 0
-				ioputs=0
+				if splitL[0] == 'pattern':
+					defs = 0
+					ops = 0
+					patt =1
+					varsIO=0
+					self.pattern = splitL[1]
+					start = 0
 
-			if splitL[0] == 'input':
-				defs = 0
-				inps = 1
-				outs = 0
-				ops = 0
-				ioputs=0
+				if splitL[0] == 'accelerator':
+					defs = 0
+					varsIO = 0
+					ops = 0
+					accel = 0
+					self.accelerator = splitL[1]
+					start = 0
 
+				if splitL[0] == 'memory':
+					defs = 0
+					varsIO = 0
+					ops = 0
+					mem = 1
+					self.memory = splitL[1]
+					start = 0
 
-			if splitL[0] == 'output':
-				defs = 0
-				inps = 0
-				outs = 1
-				ops = 0
-				ioputs=0
+				if splitL[0] == 'define':
+					defs = 1
+					ops = 0
+					varsIO=0
+					start = 0
 
+				if splitL[0] == 'variables':
+					defs = 0
+					varsIO = 1
+					ops = 0
+					start = 0
 
-			if splitL[0] == 'io':
-				defs = 0
-				inps = 0
-				outs = 0
-				ops = 0
-				ioputs=1
+				if splitL[0] == 'operations':
+					defs = 0
+					ops = 1
+					varsIO=0
+					start = 0
 
+				if defs == 1 and start ==1:
+					self.defines[splitL[0]] = splitL[1]
 
-			if splitL[0] == 'operation':
-				defs = 0
-				inps = 0
-				outs = 0
-				ops = 1
-				ioputs=0
+				if varsIO == 1 and start==1:
+					split2 = re.split('order|\(|\)',splitL[1])
+					split2 = filter(None,split2)
+					orderN = 0
+					sizeN = ''
 
+					if split2[0].isdigit() == True:
+						orderN = int(split2[0])
+						for i in range(orderN):
+							sizeN = sizeN + splitL[0]+'D'+str(i+1)+','
+						sizeN=sizeN[:-1]
 
-			if defs == 1 and splitL[0] == '' and splitL[1] != '':
-				self.defines[splitL[1]] = splitL[3]
+					else:
+						counter = split2[0].count(',')
+						orderN = counter+1
+						sizeN = split2[0]
 
-			if inps == 1 and splitL[0] == '' and splitL[1] != '':
-				split2 = re.split('order|\(|\)',splitL[2])
-				orderN = 0
-				if split2[1].isdigit() == True:
-					orderN = int(split2[1])
-				else:
-					counter = split2[1].count(',')
-					orderN = counter+1
-				self.inputs[splitL[1]] = {}
-				self.inputs[splitL[1]]['order'] = orderN
-				sizeN = ''
-				inVar = splitL[1]
-				if len(split2) < 3:
-					for i in range(orderN):
-						sizeN = sizeN + inVar+'D'+str(i+1)+','
-					sizeN=sizeN[:-1]
-				else:
-					sizeN = split2[1]
-				
-	
-				self.inputs[splitL[1]]['size'] = sizeN
+					self.variables[splitL[0]] = {}
+					self.variables[splitL[0]]['order'] = orderN
+					
 		
-			if outs == 1 and splitL[0] == '' and splitL[1] != '':
-				split2 = re.split('order|\(|\)',splitL[2])
-				orderN = 0
-				if split2[1].isdigit() == True:
-					orderN = int(split2[1])
-				else:
-					counter = split2[1].count(',')
-					orderN = counter+1
+					self.variables[splitL[0]]['size'] = sizeN
 
-				self.outputs[splitL[1]] = {}
-				self.outputs[splitL[1]]['order'] = orderN
-				sizeN = ''
-				outVar = splitL[1]
-				if len(split2) < 3:
-					for i in range(orderN):
-						sizeN = sizeN + outVar+'D'+str(i+1)+','
-					sizeN=sizeN[:-1]
-				else:
-					sizeN = split2[1]
-
-				self.outputs[splitL[1]]['size'] = sizeN
-
-
-			if ioputs == 1 and splitL[0] == '' and splitL[1] != '':
-				split2 = re.split('order|\(|\)',splitL[2])
-				orderN = 0
-				if split2[1].isdigit() == True:
-					orderN = int(split2[1])
-				else:
-					counter = split2[1].count(',')
-					orderN = counter+1
-
-				self.inputs[splitL[1]] = {}
-				self.inputs[splitL[1]]['order'] = orderN
-				sizeN = ''
-				inVar = splitL[1]
-				if len(split2) < 3:
-					for i in range(orderN):
-						sizeN = sizeN + inVar+'D'+str(i+1)+','
-					sizeN=sizeN[:-1]
-				else:
-					sizeN = split2[1]
-				
-	
-				self.inputs[splitL[1]]['size'] = sizeN
 		
-				self.outputs[splitL[1]] = {}
-				self.outputs[splitL[1]]['order'] = orderN
 
-				self.outputs[splitL[1]]['size'] = sizeN
+				if ops == 1 and start==1:
 
-	
+					split4 = re.split('(=|\+|\*|\-|\/)| |\t|\n',line)
+					split4 = filter(None,split4)					
+					acum=0
 
-			if ops == 1 and splitL[0] == '' and splitL[1] != '':
-				split3 = re.split('\t|\n',line)
 
-				split4 = re.split('(=)|\+|\*|\-|\/| |',split3[1])
+					assigment = split4[1] + split4[2]
+					opI = split4[4]
 
-				acum=0
+					
+					if not (assigment == '+=' or assigment == '-=' or assigment == '=-' or assigment == '=+'):
+						print '\033[91m'+ 'Error: Operation ' + line + ' is not a Tensor-Contraction.' + '\033[0m'
+						sys.exit()
 
-				var = split4[0]
-				tempOp = {}
-				tempOp['operation']=split3[1]
-				tempOp['vars'] = {}
-	
-				while var != '=':
 
-					if var is not None and var is not '':
-						s5 = re.split('\(|,|\)|:',var)
-						v1 = s5[0]
+					s5 = filter(None,re.split('\(|,|\)|:',split4[0]))
+					s6 = filter(None,re.split('\(|,|\)|:',split4[3]))
+					s7 = filter(None,re.split('\(|,|\)|:',split4[5]))
 
-						if v1 not in self.outputs:
-							print '\033[91m'+ 'Error: Variable ' + v1 + ' not declared in output section' + '\033[0m'
+
+					varsT = [s5,s6,s7]
+
+					for i in range(3):
+						if varsT[i][0] not in self.variables:
+
+							print '\033[91m'+ 'Error: Variable ' + varsT[i][0]+ ' not declared in variables section' + '\033[0m'
 							sys.exit()
 
-						s6 = self.outputs[v1]['size']
-						loopsV = {}
-						s7 = re.split(',',s6)
-						for j in range(2,len(s5)-1):
-							if j is not '':
-								loopsV[s5[j]] = s7[j-2]
+					var = split4[0]
+					tempOp = {}
+					tempOp['output'] = split4[0]
+					tempOp['input1'] = split4[3]
+					tempOp['input2'] = split4[5]
+					tempOp['operation']=opI
+					tempOp['assignment'] = assigment
+		
 
-						tempOp['vars'][v1] = loopsV
-					acum = acum+1
-					var = split4[acum]
-
-				
-				for vi in range(acum+1,len(split4)):
-
-					var = split4[vi]
-					if var is not None and var is not '':
-						s5 = re.split('\(|,|\)|:',var)
-						v1 = s5[0]
-						if v1 not in self.inputs:
-							print '\033[91m' + 'Error: Variable ' + v1 + ' not declared in input section' + '\033[0m'
-							sys.exit()
-
-
-						s6 = self.inputs[v1]['size']
-						loopsV = {}
-						s7 = re.split(',',s6)
-						
-						for j in range(2,len(s5)-1):
-							if j is not '':
-								loopsV[s5[j]] = s7[j-2]
-
-						tempOp['vars'][v1] = loopsV
-
-				self.operation.append(tempOp)
+					self.operation.append(tempOp)
 
 		
 		self.filew.close()
@@ -254,29 +165,6 @@ class InputFile:
 			self.accelerator = 'GPU'
 		if acc == 0:
 			self.access = 'multidimension' 
-
-		for op in self.operation:
-			split4 = re.split('=|\+|\*|\-|\/|',op['operation'])
-			split4.remove('')
-			counter1 = (split4[1].count(','))+1
-			var1 = re.split(':',split4[1])
-			var2 = re.split(':',split4[2])
-			ovar = re.split(':',split4[0])
-			counter2 = (split4[2].count(','))+1
-			errVar = 0		
-			for it in range(len(var1)):
-				var1[it] = re.sub(' ','',var1[it])
-				var2[it] = re.sub(' ','',var2[it])
-				ovar[it] = re.sub(' ','',ovar[it])
-
-		
-			if counter1 != self.inputs[var1[0]]['order']:
-				self.access = 'linearize'
-
-	
-			if counter2 != self.inputs[var2[0]]['order']:
-				self.access = 'linearize'
-
 	
 	def printInfo(self):
 		print "Filename: ",self.filename
@@ -295,20 +183,12 @@ class InputFile:
 		print "\tTensor\t|\tOrder\t|\tSize\t"
 		print "\t------------------------------------------"
 		
-		for key,value in self.inputs.items():
-			print "\t",key,"\t|\t",value['order'],"\t|\t",value['size']
-
-		print "\nOutput Data:"
-		print "\t------------------------------------------"
-		print "\tTensor\t|\tOrder\t|\tSize\t"
-		print "\t------------------------------------------"
-		
-		for key,value in self.outputs.items():
+		for key,value in self.variables.items():
 			print "\t",key,"\t|\t",value['order'],"\t|\t",value['size']
 
 		print "\nOperations:"
 		for op in self.operation:
-			print "\t",op['operation']," "
+			print "\t",op['output'],op['assignment'],op['input1'],op['operation'],op['input2']
 
 
 	def getOperations(self):
@@ -323,11 +203,8 @@ class InputFile:
 	def getAccess(self):
 		return self.access
 
-	def getInputs(self):
-		return self.inputs
-
-	def getOutputs(self):
-		return self.outputs
+	def getVariables(self):
+		return self.variables
 
 	def getFuncName(self):
 		return self.funcName

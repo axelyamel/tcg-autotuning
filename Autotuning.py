@@ -34,6 +34,14 @@ class Autotuning:
 			self.defVars.append(key)
 			self.Script = self.Script + key + ' = ' + value + '\n'
 
+		if self.OpLen > 1:
+			dist = 'distribute({'
+			for i in range(self.OpLen):
+				dist = dist + str(i) + ','
+			dist = dist[:-1]
+			dist = dist + '},1)\n'
+
+		self.Script = self.Script + dist
 		
 		for op in self.operations:
 			newOp = ''
@@ -48,6 +56,8 @@ class Autotuning:
 			permutes = []
 			registers = []
 
+			outs = ''
+
 			opI = op['operation']
 			splitL = re.split(' |=|\+|\-|\*|\/',opI)
 
@@ -58,6 +68,10 @@ class Autotuning:
 
 			for i in psuInfo:
 				splitI = re.split(':\(|,|\)',i)
+
+				if splitI[0] in self.outputs:
+					outs = splitI[0]
+
 				redSplit.append(splitI)
 				for j in range(len(splitI)):
 					if j>0 and splitI[j] != '':
@@ -70,7 +84,6 @@ class Autotuning:
 							loops2.append(indx)
 						if not splitI[j] in self.loopsInd:
 							self.loopsInd.append(splitI[j])
-
 
 			acum = 1;
 			inter = []
@@ -187,7 +200,11 @@ class Autotuning:
 
 			self.Script = self.Script + cudaize
 
+			copyReg = ''
+			if len(inter) > 0:
 
+				copyReg = 'copy_to_registers(\"'+inter[0]+'\",\"'+outs+'\")\n'
+				self.Script = self.Script + copyReg
 
 			curOp = curOp +1
 

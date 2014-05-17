@@ -91,6 +91,6 @@ if codegen == 1:
 	z.OutToFile(OutputFile)
 	print "Output file: ",OutputFile
 
-print "Generating CUDA-CHiLL scripts"
-auto = Autotuning(x)
-auto.getScript()
+##print "Generating CUDA-CHiLL scripts"
+##auto = Autotuning(x)
+##auto.getScript()

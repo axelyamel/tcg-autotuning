@@ -10,231 +10,206 @@ class Transform:
 		self.defines = self.inputF.getDefines()
 		self.memory = self.inputF.getMemory()
 		self.access = self.inputF.getAccess()
-		self.inputs = self.inputF.getInputs()
-		self.outputs = self.inputF.getOutputs()
-
-		self.defVars = []
+		self.variables = self.inputF.getVariables()
 
 		self.transOp = []
-		self.loopsInd = []
 		self.pattern = self.inputF.getPattern()
+		self.Index = []
 
 
-		for key, value in self.defines.items():
-			self.defVars.append(key)
-		
 		for op in self.operations:
-			newOp = ''
-			loops = []
-			psuInfo = []
-			reduct = []
-			redSplit = []
-			loops2 = []
 
-			opI = op['operation']
-			splitL = re.split(' |=|\+|\-|\*|\/',opI)
+			tOP = {}
+			tVars = []
 
-			for i in splitL:
-				if i != '':
-					psuInfo.append(i)
+			dVars = []
+			tSize2 = []
+			tOpI2 = []
 
-			for i in psuInfo:
-				splitI = re.split(':\(|,|\)',i)
-				redSplit.append(splitI)
-				for j in range(len(splitI)):
-					if j>0 and splitI[j] != '':
+			varsI = filter(None,re.split(':|\(|\)',op['output']))
+			dVars.append(varsI[0])
+		
+			varsI2 = filter(None,re.split(',',varsI[1]))
+			tOpI2.append(varsI2)
 
-						indx = []
-						if not splitI[j] in loops:
-							indx.append(splitI[j])
-							indx.append(op['vars'][splitI[0]][splitI[j]])
-							loops.append(splitI[j])
-							loops2.append(indx)
-						if not splitI[j] in self.loopsInd:
-							self.loopsInd.append(splitI[j])
-
-
-			acum = 1;
-			inter = []
-
-			outR = redSplit[0]
-
-
-
-			inR2 = []
 				
-			for i in range(1,len(redSplit)):
-				inR = list(set(outR) & set(redSplit[i]))
-				for j in inR:
-					if not j in inR2:
-						inR2.append(j)
-				
+			sizeI = self.variables[varsI[0]]['size']
+			sizeI2 = filter(None,re.split(',',sizeI))
+			tSize2.append(sizeI2)
 
 
 
-			for i in inR2:
-				for j in range(len(redSplit)):
-					if i in redSplit[j]:
-						redSplit[j].remove(i)
-				
+			varsI = filter(None,re.split(':|\(|\)',op['input1']))
+			dVars.append(varsI[0])
+	
+			varsI2 = filter(None,re.split(',',varsI[1]))
+			tOpI2.append(varsI2)
 
-			for i in range(len(redSplit)):
-				if len(redSplit[i]) > 1:
-					for j in range(1,len(redSplit[i])):
-						if not redSplit[i][j] in inter:
-							inter.append(redSplit[i][j])
-						if redSplit[i][j] in loops:
-							loops.remove(redSplit[i][j])
-			
-			if self.memory == 'column':
-				loops.reverse()
+			sizeI = self.variables[varsI[0]]['size']
+			sizeI2 = filter(None,re.split(',',sizeI))
+			tSize2.append(sizeI2)
 
 
+			varsI = filter(None,re.split(':|\(|\)',op['input2']))
+			dVars.append(varsI[0])
+	
+			varsI2 = filter(None,re.split(',',varsI[1]))
+			tOpI2.append(varsI2)
 
-			acumS = 1
-			for i in loops:
-				temp = ''
-				for j in range(acumS):
-					newOp = newOp + '\t'
-				for k in loops2:
-					if k[0] == i:
-						temp = k[1]
-				newOp = newOp + 'for('+i + ' = 0; '+i+' < '+temp+'; '+i+'++){\n'
-				acumS = acumS+1
+			sizeI = self.variables[varsI[0]]['size']
+			sizeI2 = filter(None,re.split(',',sizeI))
+			tSize2.append(sizeI2)
 
-			for i in inter:
-				temp=''
-				for k in loops2:
-					if k[0] == i:
-						temp = k[1]
 
-				for j in range(acumS):
-					newOp = newOp + '\t'
-				newOp = newOp + 'for('+i + ' = 0; '+i+' < '+temp+'; '+i+'++){\n'
-				acumS = acumS+1
 
+
+			newOP = ''
 			if self.access == 'multidimension':
-				op2 = re.sub(':\(','[',op['operation'])
-				op2 = re.sub(',','][',op2)
-				op2 = re.sub('\)',']',op2)
+				varT = re.sub(':\(','[',op['output'])
+				varT = re.sub(',','][',varT)
+				varT = re.sub('\)',']',varT)
+				
+				tVars.append(varT)
+
+				varT = re.sub(':\(','[',op['input1'])
+				varT = re.sub(',','][',varT)
+				varT = re.sub('\)',']',varT)
+				tVars.append(varT)
+
+				varT = re.sub(':\(','[',op['input2'])
+				varT = re.sub(',','][',varT)
+				varT = re.sub('\)',']',varT)
+				tVars.append(varT)
 
 			elif self.access == 'linearize':
-				cont = []
-				op3 = ''
-				op2 = re.sub(':\(','[',op['operation'])
-				
-				split3 = re.split('(\+|=| |\*|\-|\/)',op2)
-				for it in range(len(split3)):
-					var = split3[it]
-					ver = 0
-					if var != '' and var != ' ' and var != '=' and var != '(' and var != '+' and var != '-' and var != '*' and var != '/':
-						counter = var.count(',')
-	
-						s5 = re.split('(\(|\[|\]|\)|,)',var)
-						if s5[0] in self.outputs:
-	
-							s6 = re.split(',',self.outputs[s5[0]]['size'])
-							ver = 1
-	
-							if self.pattern == 'contigous':
-								acum3 = 1
-								for i in range(2,len(s5)-2):
-									if s5[i] != ',':
-										tempP = s5[i]
-										for j in range(acum3,len(s6)):
-											tempP = tempP + '*'+s6[j]
-										acum3 = acum3+1
-										s5[i] = tempP
-										
-							elif self.pattern == 'strided':
-								acum3 = 0
-								counter = 0
-								for i in range(2,len(s5)-3):
-									if s5[i] == ',':
-										counter = counter+1
-									if s5[i] != ',':
-										tempP = s5[i]
-										
-										tempP = tempP + '+'+s6[acum3]
-										acum3 = acum3+1
-										s5[i] = tempP
-								for i in range(counter-1):
-									s5.append(')')
-									
-						if s5[0] in self.inputs and ver == 0:
-	
-							s6 = re.split(',',self.inputs[s5[0]]['size'])
-							if self.pattern == 'contigous':
-								acum3 = 1
-								for i in range(2,len(s5)-2):
-									if s5[i] != ',':
-										tempP = s5[i]
-										for j in range(acum3,len(s6)):
-											tempP = tempP + '*'+s6[j]
-										acum3 = acum3+1
-										s5[i] = tempP
 
-							elif self.pattern == 'strided':
-								acum3 = 0
-								counter = 0
-								for i in range(2,len(s5)-3):
-									if s5[i] == ',':
-										counter = counter+1
-									if s5[i] != ',':
-										tempP = s5[i]
-										
-										tempP = tempP + '+'+s6[acum3]
-										acum3 = acum3+1
-										s5[i] = tempP
-								for i in range(counter-1):
-									s5.append(')')
-							
-
-
-						tempT = ''
-						for i in s5:
-							tempT = tempT + i
-						if self.pattern == 'contigous':
-							tempT = tempT[:-1]
-						split3[it] = tempT + ']'
-						
-					op3 = op3 + split3[it]
-
+			
+				varT = ''
 				if self.pattern == 'contigous':
-					op2 = re.sub(',',' + ',op3)
 					
+					for l in range(3):
+						varT = ''
+						varT = varT + dVars[l] + '['
+						acum = 1
+						for i in tOpI2[l]:
+							varT = varT + i
+							for j in range(acum,len(tSize2[l])):
+								varT = varT + '*' + tSize2[l][j]
+							varT = varT + ' + '
 
-				elif self.pattern == 'strided':
+							acum = acum +1
+						varT = varT[:-3] + ']'
+						tVars.append(varT)
 
-					op2 = re.sub(',',' *(',op3)
+				if self.pattern == 'strided':
 					
+					for l in range(3):
+						varT = ''
+						varT = varT + dVars[l] + '['
+						acum = 0
+						for i in tOpI2[l]:
+							addS = ''
+							if acum < (len(tSize2[l]) - 1):
+								addS = tSize2[l][acum+1]
+							varT = varT + i+ ' + ' + addS + '*('
+
+							acum = acum +1
+						addS = ''
+						varT = varT[:-5]
+						for i in range(1,len(tOpI2[l])):
+							addS = addS + ')'
+						varT = varT + addS + ']'
+						tVars.append(varT)
+
+			assig = ' = ' + tVars[0] 
+			if op['assignment'] == '+=':
+				assig = assig + ' + '
+			elif op['assignment'] == '-=':
+				assig = assig + ' - '
+
+			tOP['operation'] = tVars[0] + ' ' + assig + ' (' + tVars[1] + ' ' + op['operation'] + ' ' + tVars[2]+')'
+
+			tOP['variables'] = tVars
 
 
-			for j in range(acumS):
-				newOp = newOp + '\t'
 
-			newOp = newOp + op2 + ';\n'
-
-			acumS = acumS-1
-
-			for i in loops:
-				for j in range(acumS):
-					newOp = newOp + '\t'
-				newOp = newOp + '}\n'
-				acumS = acumS -1
-
-			if self.pattern == 'contigous':
-				newOp = newOp +'\t}\n'
+			loopNest = []
+			reduction = []
+			
+			if self.memory == 'column':
+				tOpI2[0].reverse()
+				tSize2[0].reverse()
 
 
-			self.transOp.append(newOp)
+			loopNest.append(tOpI2[0])
+			loopNest.append(tSize2[0])
+
+			tarr = []
+			tarr2 = []
+			for i in range(1,3):
+				for j in range(len(tOpI2[i])):
+					if tOpI2[i][j] not in loopNest[0] and tOpI2[i][j] not in tarr:	
+						tarr.append(tOpI2[i][j])
+						tarr2.append(tSize2[i][j])
+			reduction.append(tarr)
+			reduction.append(tarr2)
+
+
+			loopGen = ''
+			acum = 1
+
+			for i in range(len(loopNest[0])):
+
+				if loopNest[0][i] not in self.Index:
+					self.Index.append(loopNest[0][i])
+
+				for j in range(acum):
+					loopGen = loopGen + '\t'
+				loopGen = loopGen + 'for(' + loopNest[0][i] +' = 0; '+loopNest[0][i]+' < ' +loopNest[1][i] + '; '+loopNest[0][i] + '++){\n'
+				acum = acum +1 
+
+
+			for i in range(len(reduction[0])):
+				
+				if reduction[0][i] not in self.Index:
+					self.Index.append(reduction[0][i])
+
+				for j in range(acum):
+					loopGen = loopGen + '\t'
+				loopGen = loopGen + 'for(' + reduction[0][i] +' = 0; '+reduction[0][i]+' < ' +reduction[1][i] + '; '+reduction[0][i] + '++){\n'
+				acum = acum +1 
+
+			for j in range(acum):
+				loopGen = loopGen + '\t'
+			closeL = '\n'
+
+			acum = acum-1
+			for i in range(len(reduction[0])):
+				
+				for j in range(acum):
+					closeL = closeL + '\t'
+				closeL = closeL + '}\n'
+				acum = acum -1
+
+			for i in range(len(loopNest[0])):
+				for j in range(acum):
+					closeL = closeL + '\t'
+				closeL = closeL + '}\n'
+				acum = acum -1
+
+
+			tOP['loopGen'] = loopGen
+			tOP['close'] = closeL
+
+			self.transOp.append(tOP)
 
 
 	def printInfo(self):
 
 		for op in range(len(self.operations)):
-			print "Original Operation: ",self.operations[op]['operation']
-			print "Generated Operation: \n",self.transOp[op]
+			print "Original Operation: ",self.operations[op]['output'],self.operations[op]['assignment'],self.operations[op]['input1'],self.operations[op]['operation'],self.operations[op]['input2']
+
+			print "Generated Operation: ",self.transOp[op]['operation'],"\n"
 
 	def getTransOp(self):
 		return self.transOp
@@ -243,4 +218,4 @@ class Transform:
 		return self.inputF
 
 	def getLoopsIndeces(self):
-		return self.loopsInd
+		return self.Index

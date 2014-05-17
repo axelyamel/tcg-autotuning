@@ -11,6 +11,19 @@ Developer:
 
 Updates:
 
+	v0.4:  Massive update to the data structure to improve performance and memory handling.
+	       Cleaner implementation using Python Dictionaries.
+    	       Fixed the tab and spaces in the input. Now user can use tab, spaces or non of
+		them when writing start of lines, as well between assignations and operators.
+	       Output now don't use C Compound assignment (+=), still it is needed in the
+		input because it represents the summation symbol for the Einstein Notation.
+	       Input, Output and IO section were fused in one section: "variables".
+	       "defines" section was renemade to "define".
+	       "operation" section was renamed to "operations".
+	       Transformed operations now only show the output operation rather than the full 
+		loop nest for a cleaner screen.
+	       Stamp added to the output code.
+	       
 	v0.3:  Very naive CUDA-CHiLL scripts generation added: just check the loop access and
 		decides what goes for threads, blocks, register and permute.
 
@@ -42,14 +55,16 @@ Updates:
 Files:
 
 	TCG.py			|	Main file
-	InputFile.py		|	Module for handle the Input File
-	Transform.py		|	Module for handle code transformation
-	CodeGen.py		|	Module for handle code generation
+	InputFile.py		|	Module for handling the Input File
+	Transform.py		|	Module for handling code transformation
+	CodeGen.py		|	Module for handling code generation
+	Autotuning.py		|	Module for handling Autotuning (not save)
 	kernels:		|	Directory with examples
 		mxm.m		|	Classic matrix multiply
 		nek.m		|	TC in Nekbone
 		tce.m		|	TC s1 presented in NWCHEM
 		tce2.m		|	TC d1 presented in NWCHEM
+		eq2.m		|	2D Poisson example
 
 Install:
 
@@ -80,27 +95,26 @@ Input file:
 	accelerator: GPU			--(optional)default: GPU		For future work
 	memory: row | column			--(optional)default: row		Row or Column major
 	pattern: contigous | strided		--(optional)default: contigous		Access pattern
-	defines:				-- (Optional)Define variables 
+	define:					-- (Optional)Define variables 
 		var1 = val
 		var2 = val
 		    *
    		    *
 		    *
 		varN = val
-	input:					-- Define input data with sizes
+	variables:					-- Define input and output data with sizes
 		Ti1:(size1, ... ,sizeN)	| orderN	
 		    *
 		    *
 		    *
 		Tin:(size1, ..., sizeN) | orderN
-	output:					-- Define Output data with sizes
 		To1:(size1, ... ,sizeN) | orderN		
 		    *
 		    *
 		    *
 		Ton:(size1, ..., sizeN) | orderN
-	operation:				-- Define the operations to be done with loop indices
-						-- Assignment: = | += | -=
+	operations:				-- Define the Tensor-Contraction to be done with loop indices
+						-- Assignment: += | -=
 						-- Operator: + | - | * | /
 
 		ToX1(l1r, ..., lNs) [assingment] TiY1(l1t, ...,lNt) [operator] TiZ1(l1s,...,lNs)
@@ -108,15 +122,20 @@ Input file:
 							*
 							*
 		ToX1(l1r, ..., lNs) [assingment] TiY1(l1t, ...,lNt) [operator] TiZ1(l1s,...,lNs)
+
+Notes:
+
+	Use the C Compound assignment (+=) to express reductions. It represents the classical
+	summation symbol in mathematics. Thsi produce a translation of the Einstein's Notation
+	for Tensors.
+	Each operation is binary (one output and two inputs) because of the definition of 
+	Tensor-Contraction.
+	Autotuning still a work in progress (WiP), don't use it for now and wait for future update.
 					
 Know bugs:
 
-	Currently works for binary operations (1 output, 2 inputs)
-	For reduction use C shortcuts (use a+= rather than a=a+)
-	Tab needed for writing the variables in input, output and io sections.
-	Tab needed for writing the operations.
-	Space needed between definitions and operations:
-		* use N = 10 rather than N=10
-		* use C:(i,j) += A:(i,k) * B:(k,j) rather than C:(i,j)+=A:(i,k)*B:(k,j)
+	Parameters order in the function declaration of the output file can be random. This
+	is caused by the dictionaries.
+	No explicit for commenting a line (user must delete it).
 
 
