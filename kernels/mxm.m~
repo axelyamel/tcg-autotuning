@@ -1,4 +1,7 @@
 mxm
+access: multidimension
+memory: row
+pattern: strided
 define:
 	N = 1024
 variables:
