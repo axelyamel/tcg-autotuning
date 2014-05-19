@@ -13,6 +13,8 @@ Developer:
 
 Updates:
 
+	v0.451:Fixed minor bug in the CUDA-CHiLL script output at the cudaize level
+
 	v0.45: Added Naive Autotuning which parries CUDA Threads, Blocks, Registers as well 
 		perform	Permutation depending on loop indeces, data access and memory (row 
 		or column major).

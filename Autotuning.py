@@ -74,11 +74,11 @@ class Autotuning:
 				threads = threads + '\"' + parL[1] + '\"'
 				blocks = blocks + '\"' + parL[0] + '\"'
 			elif numLoops == 3:
-				threads = threads + '\"' + parL[2] + '\",' + parL[1] + '\"' 
+				threads = threads + '\"' + parL[2] + '\",\"' + parL[1] + '\"' 
 				blocks = blocks + '\"' + parL[0] + '\"'
 			elif numLoops > 3:
 
-				threads = threads + '\"' + parL[numLoops-1] + '\",' +parL[numLoops-2] + '\"' 
+				threads = threads + '\"' + parL[numLoops-1] + '\",\"' +parL[numLoops-2] + '\"' 
 				blocks = blocks + '\"' + parL[numLoops-4] + '\",' + '\"' + parL[numLoops-3] + '\"'
 
  
@@ -99,7 +99,7 @@ class Autotuning:
 				sizes = sizes + key + '=' +sizeT + ','
 			sizes = sizes[:-1]
 
-			Cudaize = Cudaize + 'cudaize(' + str(acum) + ',\"' + self.funcName + '_GPU_' + str(acum) + '\",{' + sizes + '},{'+blocks+'},{'+threads+'},{})\n\n'
+			Cudaize = Cudaize + 'cudaize(' + str(acum) + ',\"' + self.funcName + '_GPU_' + str(acum) + '\",{' + sizes + '},{'+blocks+','+threads+'},{})\n\n'
 
 
 			outVar = filter(None,re.split(':|\(|,|\)',self.orOP[acum]['output']))[0]
