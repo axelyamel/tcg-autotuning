@@ -1,219 +1,157 @@
-from InputFile import *
+from Transform import *
 
 class Autotuning:
 
-	def __init__(self,inFile):
-		self.inputF = inFile
+	def __init__(self,transOPs):
+		self.transformOP = transOPs
+		self.inFile = self.transformOP.getInputFile()
+		self.Defines = self.inFile.getDefines()
+		self.dVars = self.inFile.getVariables()
+		self.funcName = self.inFile.getFuncName()
+		self.fOut = self.inFile.getFileOut()
+		self.orOP = self.inFile.getOperations()
+		self.OPs = self.transformOP.getTransOp()
+		self.Memory = self.inFile.getMemory()
 
-		
-		self.operations = self.inputF.getOperations()
-		self.defines = self.inputF.getDefines()
-		self.memory = self.inputF.getMemory()
-		self.access = self.inputF.getAccess()
-		self.inputs = self.inputF.getInputs()
-		self.outputs = self.inputF.getOutputs()
-		self.funcName = self.inputF.getFuncName()
-		self.fOut = self.inputF.getFileOut()
-
-		self.defVars = []
-
-		self.transOp = []
-		self.loopsInd = []
-		self.pattern = self.inputF.getPattern()
-
-		self.OpLen = len(self.operations)
+		numOps = len(self.OPs)
 
 		self.Script = ''
 
+		Permute = ''
+		Cudaize = ''
+		Registers = ''
+		Tiles = ''
 
-		curOp = 0
+		self.Permutes = []
+		self.TBlocks = []
 
-		print "Number of operations: ",self.OpLen
+		self.Registers = []
 
-		for key, value in self.defines.items():
-			self.defVars.append(key)
-			self.Script = self.Script + key + ' = ' + value + '\n'
+		for key,value in self.Defines.items():
 
-		if self.OpLen > 1:
-			dist = 'distribute({'
-			for i in range(self.OpLen):
-				dist = dist + str(i) + ','
-			dist = dist[:-1]
-			dist = dist + '},1)\n'
+			self.Script = self.Script + key + ' = ' + str(value) + '\n'
 
-		self.Script = self.Script + dist
+		if numOps > 1:
+			self.Script = self.Script + '\ndistribute({'
+			for i in range(numOps):
+				self.Script = self.Script + str(i) + ','
+
+			self.Script = self.Script[:-1] + '},1)\n\n'
 		
-		for op in self.operations:
-			newOp = ''
-			loops = []
-			psuInfo = []
-			reduct = []
-			redSplit = []
-			loops2 = []
+		acum = 0
+		for OP in self.OPs:
 
-			blocks = []
-			threads = []
-			permutes = []
-			registers = []
+			TB = []
+			PR = []
+			REG = []
 
-			outs = ''
+			parL = OP['parallelLoops']
+			numLoops = len(parL)
+			threads = 'thread={'
+			blocks = 'block={'
 
-			opI = op['operation']
-			splitL = re.split(' |=|\+|\-|\*|\/',opI)
+			if self.Memory == 'column' and numLoops > 5:
 
+				temp = parL[0]
+				parL[0] = parL[1]
+				parL[1] = temp
 
-			for i in splitL:
-				if i != '':
-					psuInfo.append(i)
+				PR.append(parL[0])
+				PR.append(parL[1])
 
-			for i in psuInfo:
-				splitI = re.split(':\(|,|\)',i)
-
-				if splitI[0] in self.outputs:
-					outs = splitI[0]
-
-				redSplit.append(splitI)
-				for j in range(len(splitI)):
-					if j>0 and splitI[j] != '':
-
-						indx = []
-						if not splitI[j] in loops:
-							indx.append(splitI[j])
-							indx.append(op['vars'][splitI[0]][splitI[j]])
-							loops.append(splitI[j])
-							loops2.append(indx)
-						if not splitI[j] in self.loopsInd:
-							self.loopsInd.append(splitI[j])
-
-			acum = 1;
-			inter = []
-
-			outR = redSplit[0]
+				Permute = Permute + 'tile_by_index('
+				if numOps > 1:
+					Permute = Permute + str(acum) + ','
+				Permute = Permute + '{},{},{},{'
+				for i in parL:
+					Permute = Permute + '\"'+i+'\",'
+				Permute = Permute[:-1] + '})\n\n'
 
 
+			self.Permutes.append(PR)
 
-			inR2 = []
-				
-			for i in range(1,len(redSplit)):
-				inR = list(set(outR) & set(redSplit[i]))
-				for j in inR:
-					if not j in inR2:
-						inR2.append(j)
-				
+			if numLoops < 3:
+				threads = threads + '\"' + parL[1] + '\"'
+				blocks = blocks + '\"' + parL[0] + '\"'
+			elif numLoops == 3:
+				threads = threads + '\"' + parL[2] + '\",' + parL[1] + '\"' 
+				blocks = blocks + '\"' + parL[0] + '\"'
+			elif numLoops > 3:
 
+				threads = threads + '\"' + parL[numLoops-1] + '\",' +parL[numLoops-2] + '\"' 
+				blocks = blocks + '\"' + parL[numLoops-4] + '\",' + '\"' + parL[numLoops-3] + '\"'
 
+ 
+			threads = threads + '}'
+			blocks = blocks + '}'
 
-			for i in inR2:
-				for j in range(len(redSplit)):
-					if i in redSplit[j]:
-						redSplit[j].remove(i)
-				
+			TB.append(threads)
+			TB.append(blocks)
 
-			for i in range(len(redSplit)):
-				if len(redSplit[i]) > 1:
-					for j in range(1,len(redSplit[i])):
-						if not redSplit[i][j] in inter:
-							inter.append(redSplit[i][j])
-						if redSplit[i][j] in loops:
-							loops.remove(redSplit[i][j])
+			self.TBlocks.append(TB)
 
-			if self.memory == 'column':
-				loops.reverse()
-
-			loopsLen = len(loops)
-
-			threads.append(loops[loopsLen-1])
-
-			if loopsLen > 3:
-				blocks.append(loops[loopsLen-4])
-			if loopsLen > 2:
-				blocks.append(loops[loopsLen-3])
-				threads.append(loops[loopsLen-2])
-			if loopsLen <= 2:
-				blocks.append(loops[loopsLen-2])
-
-			print "CUDA Blocks:",blocks
-			print "CUDA Threads:",threads
-		
-			if loopsLen > 5:
-				permutes.append(loops[loopsLen-5])
-				permutes.append(loops[loopsLen-6])
-
-				tmpL = loops[loopsLen-5]
-				loops[loopsLen-5] = loops[loopsLen-6]
-				loops[loopsLen-6] = tmpL
-
-				print "Permutes: ",permutes
-
-			if len(inter) > 0:
-
-				for i in inter:
-					registers.append(i)
-				print "Registers: ",registers
+			sizes = ''
 
 
-			if len(permutes) > 0:
-				perm = 'tile_by_index('
-				if self.OpLen > 1:
-					perm = perm + str(curOp) + ','
-				perm = perm + '{},{},{},{'
-				for li in loops:
-					perm = perm + '\"' + li + '\",'
+			for key,value in self.dVars.items():
 
-				perm = perm[:-1]
-				perm = perm +'})'
+				sizeT = filter(None,re.sub(',','*',value['size']))
+				sizes = sizes + key + '=' +sizeT + ','
+			sizes = sizes[:-1]
 
-				self.Script = self.Script + "\n" + perm + "\n"
-
-			varsOP = []
-
-			for varI in splitL:
-				if varI != '':
-					varsOP.append(varI)
+			Cudaize = Cudaize + 'cudaize(' + str(acum) + ',\"' + self.funcName + '_GPU_' + str(acum) + '\",{' + sizes + '},{'+blocks+'},{'+threads+'},{})\n\n'
 
 
-			cudaize = 'cudaize(' + str(curOp) +',\"'+self.funcName+'_'+str(curOp+1)+'_GPU_\",{'
-			for varI in varsOP:
-				splitV = re.split(':',varI)
-				sizeT = ''
+			outVar = filter(None,re.split(':|\(|,|\)',self.orOP[acum]['output']))[0]
 
-				if splitV[0] in self.outputs:
-					sizeT = self.outputs[splitV[0]]['size']
-				else:
-					sizeT = self.inputs[splitV[0]]['size']
+			for i in OP['reductionLoops']:
 
-				sizeT = sizeT.replace(',','*')
-				cudaize = cudaize + splitV[0] + '=' + sizeT+','
+				Registers = Registers + 'copy_to_registers(\"' + i + '\",\"' + outVar + '\")\n\n'
 
-			cudaize = cudaize[:-1]
+				REG.append(outVar)
+				REG.append(i)
 
+			self.Registers.append(REG)
 
-			cudaize = cudaize + '},{block={' 
-			for bi in blocks:
-				cudaize = cudaize + '\"' + bi + '\",'
-			cudaize = cudaize[:-1]
-			cudaize = cudaize + '},thread={'
-			for ti in threads:
-				cudaize = cudaize + '\"'+ ti + '\",'
-			cudaize = cudaize[:-1]
-			cudaize = cudaize + '}},{})\n'
+			acum = acum+1
+			
 
-			self.Script = self.Script + cudaize
+		self.Script = self.Script + Permute + Cudaize + Registers
 
-			copyReg = ''
-			if len(inter) > 0:
-
-				copyReg = 'copy_to_registers(\"'+inter[0]+'\",\"'+outs+'\")\n'
-				self.Script = self.Script + copyReg
-
-			curOp = curOp +1
-
-	def getScript(self):
 
 		self.fScript = 'init(\"'+self.fOut + '\",\"'+self.funcName+'\",0)\n'
-		self.fScript = self.fScript + 'dofile(\"cudaize.lua\")\n'
+		self.fScript = self.fScript + 'dofile(\"cudaize.lua\")\n\n'
 
 		self.fScript = self.fScript + self.Script
 
+
+
+	def printInfo(self):
+
+
+		print "Autotuning Information: "
+		acum = 0
+		for op in self.orOP:
+
+			print "\nGenerated transformations for: ",op['output'],op['assignment'],op['input1'],op['operation'],op['input2']
+
+			
+			if len(self.Permutes[acum]) > 0:
+				print"\tLoops Permuted: ",self.Permutes[acum][1],":",self.Permutes[acum][0]," -> ",self.Permutes[acum][0],":",self.Permutes[acum][1]
+
+			print "\tCUDA Thread-Blocks: ",self.TBlocks[acum][0],", ",self.TBlocks[acum][1]
+			print "\tCUDA Registers Operations: Array",self.Registers[acum][0]," at loop ",self.Registers[acum][1]
+
+
+			acum = acum+1
+
+	def printScript(self):
 		print '\nScript Generated:\n',self.fScript
 
+	def OutToFile(self,outfile):
+		
+		filename = outfile
+		fileN = open(filename,'w')
+		fileN.write(self.fScript)
+
+		fileN.close()

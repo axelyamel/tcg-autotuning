@@ -1,7 +1,9 @@
 Tensor-Contraction Generator and Autotuning
 ===========================================
 
-The Tensor-Contraction generator is a Python program which generate C code based on a TC input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS. It also generates a CUDA-CHiLL script, which can be use with the C code to transform it into CUDA code through CUDA-CHiLL. 
+The Tensor-Contraction generator is a Python program that generates C code based on a simplified input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS to create a simple interface that can be extended to every single user.
+
+The core of this framework is to generate CUDA code that run in NVIDIA GPUs. This code contains loop transformations, created by using Autotuning techniques, to achieve performance and better use of the features provided by the device. This is done by generating CUDA-CHiLL script, which are scripts that presents the transformations to be perform over a C code and produce CUDA code. This scripts can be use with the CHiLL compiler (http://ctop.cs.utah.edu).
 
 Developer:
 
@@ -10,6 +12,18 @@ Developer:
 	axel.rivera at utah.edu
 
 Updates:
+
+	v0.45: Added Naive Autotuning which parries CUDA Threads, Blocks, Registers as well 
+		perform	Permutation depending on loop indeces, data access and memory (row 
+		or column major).
+	       Produce a CUDA-CHiLL script file using the information generated.
+	       Added the flag "-s" to specify the name of the output script file.
+	       Added the flag "-g" to specify the when the user want to print in screen the 
+		generated codes.
+	       Added the flag "-no_auto" to prevent Autotuning
+	       Fixed the order of parameters when function is created, outputs first and then
+		inputs.
+	       Matrix-Vector multiplication example added.
 
 	v0.4:  Massive update to the data structure to improve performance and memory handling.
 	       Cleaner implementation using Python Dictionaries.
@@ -35,7 +49,6 @@ Updates:
 		This section was created due to the definition of Input and Ouput.
 	       Fixed bugs in the output code where a variable was input and output.
 	
-
 	v0.2:  Support for higher abstraction. 
 	       Specify the values of access, memory, pattern and define section.
 	       If memory, access and pattern aren't specified, it will select a default.
@@ -61,16 +74,17 @@ Files:
 	Autotuning.py		|	Module for handling Autotuning (not save)
 	kernels:		|	Directory with examples
 		mxm.m		|	Classic matrix multiply
+		mxv.m		|	Classic matrix-vector multiply (use it with "-no_auto")
 		nek.m		|	TC in Nekbone
-		tce.m		|	TC s1 presented in NWCHEM
-		tce2.m		|	TC d1 presented in NWCHEM
+		tce.m		|	TC d1 presented in NWCHEM
+		tce2.m		|	TC s1 presented in NWCHEM
 		eq2.m		|	2D Poisson example
 
 Install:
 
-	Just run it through Python. For use the CUDA-CHiLL script, you must download and install 
-	it by your own.
-		CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
+	Just run it through Python. Install CUDA-CHiLL for using the generated scripts.
+	CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
+	NVIDIA CUDA Link: https://developer.nvidia.com/cuda-downloads
 
 Use:
 
@@ -78,6 +92,9 @@ Use:
 	Flags:
 		-i		 | 	Print information
 		-no_code	 | 	Prevent Code Generation
+		-s		 |	Specify output script
+		-no_auto	 |	Prevent Autotuning
+		-g		 |	Print Generated Code and Script
 		-o		 | 	Specify output filename
 		-h		 | 	Help
 
@@ -130,12 +147,15 @@ Notes:
 	for Tensors.
 	Each operation is binary (one output and two inputs) because of the definition of 
 	Tensor-Contraction.
-	Autotuning still a work in progress (WiP), don't use it for now and wait for future update.
+	Autotuning still a work in progress (WiP), output will be naive and only oriented for
+	small sizes problems. Future work will be expanded to generate higher levels.
+	The output will only produce variables of "double" type. Future update will introduce
+	type definitions.
 					
 Known bugs:
 
-	Parameters order in the function declaration of the output file can be random. This
-	is caused by the dictionaries.
-	No explicit for commenting a line (user must delete it).
+	No explicit form of commenting a line (user must delete it).
+	Code generation works only with tensors of order1 or higher.
+	Autotuning works only for tensor of order2 or higher.
 
 

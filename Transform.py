@@ -157,7 +157,7 @@ class Transform:
 
 			loopGen = ''
 			acum = 1
-
+			
 			for i in range(len(loopNest[0])):
 
 				if loopNest[0][i] not in self.Index:
@@ -166,8 +166,9 @@ class Transform:
 				for j in range(acum):
 					loopGen = loopGen + '\t'
 				loopGen = loopGen + 'for(' + loopNest[0][i] +' = 0; '+loopNest[0][i]+' < ' +loopNest[1][i] + '; '+loopNest[0][i] + '++){\n'
+				
 				acum = acum +1 
-
+			tOP['parallelLoops'] = loopNest[0]
 
 			for i in range(len(reduction[0])):
 				
@@ -178,6 +179,8 @@ class Transform:
 					loopGen = loopGen + '\t'
 				loopGen = loopGen + 'for(' + reduction[0][i] +' = 0; '+reduction[0][i]+' < ' +reduction[1][i] + '; '+reduction[0][i] + '++){\n'
 				acum = acum +1 
+
+			tOP['reductionLoops'] = reduction[0]
 
 			for j in range(acum):
 				loopGen = loopGen + '\t'

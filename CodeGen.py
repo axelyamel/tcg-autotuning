@@ -25,19 +25,31 @@ class CodeGen:
 
 			self.code = self.code + '#define ' + key + ' ' + str(value) + '\n'
 		self.code = self.code + '\nvoid ' + self.funcName + '('
+
+		ins = ''
+		outs = ''
+
 		for key,value in self.dVars.items():
 
 			sizes = filter(None,re.split(',|\*',value['size']))
 
+			tDec = ''
 			for i in sizes:
 				if i not in self.Defines:
-					self.code = self.code + 'int ' + i + ', '
+					tDec = tDec + 'int ' + i + ', '
 
 			if self.access == 'multidimension':
 				varT = re.sub(',','][',value['size'])
-				self.code = self.code + 'double ' + key + '[' + varT +'], '
+				tDec = tDec + 'double ' + key + '[' + varT +'], '
 			elif self.access == 'linearize':
-				self.code = self.code + 'double *' + key + ', '
+				tDec = tDec + 'double *' + key + ', '
+
+			if value['io'] == 'input':
+				ins = ins + tDec
+			elif value['io'] == 'output':
+				outs = outs + tDec
+
+		self.code = self.code + outs + ins
 
 		self.code = self.code[:-2] + '){\n\n\tint '
 

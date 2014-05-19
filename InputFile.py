@@ -111,6 +111,7 @@ class InputFile:
 					
 		
 					self.variables[splitL[0]]['size'] = sizeN
+					self.variables[splitL[0]]['io'] = 'input'
 
 		
 
@@ -144,6 +145,11 @@ class InputFile:
 							sys.exit()
 
 					var = split4[0]
+
+					outputVar = filter(None,re.split(':|\(|,|\)',split4[0]))
+					
+					self.variables[outputVar[0]]['io'] = 'output'
+
 					tempOp = {}
 					tempOp['output'] = split4[0]
 					tempOp['input1'] = split4[3]
@@ -179,12 +185,12 @@ class InputFile:
 			print "\t",key," = ",value
 
 		print "\nInput Data:"
-		print "\t------------------------------------------"
-		print "\tTensor\t|\tOrder\t|\tSize\t"
-		print "\t------------------------------------------"
+		print "\t-------------------------------------------------------------"
+		print "\tTensor\t|\tMode\t|\tOrder\t|\tSize\t"
+		print "\t-------------------------------------------------------------"
 		
 		for key,value in self.variables.items():
-			print "\t",key,"\t|\t",value['order'],"\t|\t",value['size']
+			print "\t",key,"\t|\t",value['io'],"\t|\t",value['order'],"\t|\t",value['size']
 
 		print "\nOperations:"
 		for op in self.operation:
