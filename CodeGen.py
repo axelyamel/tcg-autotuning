@@ -57,11 +57,17 @@ class CodeGen:
 			self.code = self.code + i + ', '
 		self.code = self.code[:-2] + ';\n\n'
 
+		self.body = ''
+		acum = 0
 		for i in self.transOP:
 
-			self.code = self.code + i['loopGen'] + i['operation'] +';' + i['close']
-
-		self.code = self.code + '}'
+			self.body = self.body + i['highLoop'] + i['loopGen'] + i['operation'] +';' + i['close']
+			if i['highLoop'] != '':
+				acum = 1
+	
+		if acum == 1:
+			self.body = self.body + '\t}\n'
+		self.code = self.code + self.body + '}'
 
 		
 

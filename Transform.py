@@ -16,8 +16,10 @@ class Transform:
 		self.pattern = self.inputF.getPattern()
 		self.Index = []
 
+		acumLoop = 0
 
 		for op in self.operations:
+
 
 			tOP = {}
 			tVars = []
@@ -157,7 +159,12 @@ class Transform:
 
 			loopGen = ''
 			acum = 1
-			
+			highL = ''
+			if acumLoop == 0 and len(self.operations) > 1:
+				
+				highL = highL + '\tfor(' + loopNest[0][0] +' = 0; '+loopNest[0][0]+' < ' +loopNest[1][0] + '; '+loopNest[0][0] + '++){\n'
+				acumLoop = acumLoop +1
+	
 			for i in range(len(loopNest[0])):
 
 				if loopNest[0][i] not in self.Index:
@@ -165,7 +172,16 @@ class Transform:
 
 				for j in range(acum):
 					loopGen = loopGen + '\t'
-				loopGen = loopGen + 'for(' + loopNest[0][i] +' = 0; '+loopNest[0][i]+' < ' +loopNest[1][i] + '; '+loopNest[0][i] + '++){\n'
+				
+				if len(self.operations)==1:
+			
+					loopGen = loopGen + 'for(' + loopNest[0][i] +' = 0; '+loopNest[0][i]+' < ' +loopNest[1][i] + '; '+loopNest[0][i] + '++){\n'
+				else:
+					if i != 0:
+						loopGen = loopGen + 'for(' + loopNest[0][i] +' = 0; '+loopNest[0][i]+' < ' +loopNest[1][i] + '; '+loopNest[0][i] + '++){\n'
+					else:
+						loopGen = loopGen + '\n'
+
 				
 				acum = acum +1 
 			tOP['parallelLoops'] = loopNest[0]
@@ -200,9 +216,12 @@ class Transform:
 				closeL = closeL + '}\n'
 				acum = acum -1
 
+			if len(self.operations) > 1:
+				closeL = closeL[:-2] + '\n'
 
 			tOP['loopGen'] = loopGen
 			tOP['close'] = closeL
+			tOP['highLoop'] = highL
 
 			self.transOp.append(tOP)
 

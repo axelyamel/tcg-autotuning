@@ -46,6 +46,7 @@ class Autotuning:
 			REG = []
 
 			parL = OP['parallelLoops']
+			redL = OP['reductionLoops']
 			numLoops = len(parL)
 			threads = 'thread={'
 			blocks = 'block={'
@@ -59,12 +60,14 @@ class Autotuning:
 				PR.append(parL[0])
 				PR.append(parL[1])
 
-				Permute = Permute + 'tile_by_index('
-				if numOps > 1:
-					Permute = Permute + str(acum) + ','
+				Permute = Permute + 'tile_by_index(' + str(acum) + ','
 				Permute = Permute + '{},{},{},{'
 				for i in parL:
 					Permute = Permute + '\"'+i+'\",'
+
+				for i in redL:
+					Permute = Permute + '\"'+i+'\",'
+
 				Permute = Permute[:-1] + '})\n\n'
 
 
@@ -104,9 +107,9 @@ class Autotuning:
 
 			outVar = filter(None,re.split(':|\(|,|\)',self.orOP[acum]['output']))[0]
 
-			for i in OP['reductionLoops']:
+			for i in redL:
 
-				Registers = Registers + 'copy_to_registers(\"' + i + '\",\"' + outVar + '\")\n\n'
+				Registers = Registers + 'copy_to_registers(' + str(acum) + ',\"' + i + '\",\"' + outVar + '\")\n\n'
 
 				REG.append(outVar)
 				REG.append(i)
@@ -118,8 +121,13 @@ class Autotuning:
 
 		self.Script = self.Script + Permute + Cudaize + Registers
 
+		self.outS = filter(None,re.split('\/',self.fOut))
+		self.outF = ''
+		outL = len(self.outS)-1
+		self.outF = self.outS[outL]
 
-		self.fScript = 'init(\"'+self.fOut + '\",\"'+self.funcName+'\",0)\n'
+
+		self.fScript = 'init(\"'+self.outF + '\",\"'+self.funcName+'\",0)\n'
 		self.fScript = self.fScript + 'dofile(\"cudaize.lua\")\n\n'
 
 		self.fScript = self.fScript + self.Script

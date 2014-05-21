@@ -13,6 +13,12 @@ Developer:
 
 Updates:
 
+	v0.452:Fixed Copy to registers not having the statement.
+	       Fixed tile_by_index not having the statement index.
+	       If there is more than one operation with the same the outer most loop index,
+		then they are fused.
+	       
+
 	v0.451:Fixed minor bug in the CUDA-CHiLL script output at the cudaize level
 
 	v0.45: Added Naive Autotuning which parries CUDA Threads, Blocks, Registers as well 
@@ -80,7 +86,6 @@ Files:
 		nek.m		|	TC in Nekbone
 		tce.m		|	TC d1 presented in NWCHEM
 		tce2.m		|	TC s1 presented in NWCHEM
-		eq2.m		|	2D Poisson example
 
 Install:
 
@@ -153,11 +158,14 @@ Notes:
 	small sizes problems. Future work will be expanded to generate higher levels.
 	The output will only produce variables of "double" type. Future update will introduce
 	type definitions.
+	Even though the framework works without defining the dimension's sizes, for better 
+	autotuning specify the dimension sizes.
 					
 Known bugs:
 
 	No explicit form of commenting a line (user must delete it).
 	Code generation works only with tensors of order1 or higher.
 	Autotuning works only for tensor of order2 or higher.
+	When using more than one operations, keep the same index variables from outer to inner.
 
 
