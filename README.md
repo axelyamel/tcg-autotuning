@@ -3,7 +3,7 @@ Tensor-Contraction Generator and Autotuning
 
 The Tensor-Contraction generator is a Python program that generates C code based on a simplified input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS to create a simple interface that can be extended to every single user.
 
-The core of this framework is to generate CUDA code that run in NVIDIA GPUs. This code contains loop transformations, created by using Autotuning techniques, to achieve performance and better use of the features provided by the device. This is done by generating CUDA-CHiLL script, which are scripts that presents the transformations to be perform over a C code and produce CUDA code. This scripts can be use with the CHiLL compiler (http://ctop.cs.utah.edu).
+The core of this framework is to generate CUDA code that run in NVIDIA GPUs. This code contains loop transformations, created by using Autotuning techniques, to achieve performance and better use of the features provided by the device. This is done by generating annotation for the CUDA-CHiLL module available in Orio, which are annotations that presents the transformations to be perform over a C code and produce CUDA code. The output of this program can be used with Orio (http://trac.mcs.anl.gov/projects/performance/wiki/Orio).
 
 Developer:
 
@@ -12,6 +12,13 @@ Developer:
 	axel.rivera at utah.edu
 
 Updates:
+
+	v0.46: Removed the production of CUDA-CHill code and Orio annotations are created
+		using the same autotuning techniques.
+	       Output already contains the annotations, code is ready to use with Orio.
+	       Added support to loop unrolling at reduction loops (Register levels).
+	       Added support to specify the compiler to be used (GNU or PGI)
+	       Added support to specify the amount of tests to be performed.
 
 	v0.452:Fixed Copy to registers not having the statement.
 	       Fixed tile_by_index not having the statement index.
@@ -89,8 +96,11 @@ Files:
 
 Install:
 
-	Just run it through Python. Install CUDA-CHiLL for using the generated scripts.
+	Just run it through Python. Install Orio and CUDA-CHiLL for use the output.
+	Make sure the desired compiler (GNU or PGI) is installed before use.
+
 	CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
+	Orio Link: http://trac.mcs.anl.gov/projects/performance/wiki/Orio
 	NVIDIA CUDA Link: https://developer.nvidia.com/cuda-downloads
 
 Use:
@@ -103,6 +113,8 @@ Use:
 		-no_auto	 |	Prevent Autotuning
 		-g		 |	Print Generated Code and Script
 		-o		 | 	Specify output filename
+		-reps		 |	Specify the amount of repetitions to be performed on each kernel
+		-compiler	 |	Specify	the compiler to be used by Orio, values are GNU or PGI (default = GNU)
 		-h		 | 	Help
 
 Input file:

@@ -185,6 +185,7 @@ class Transform:
 				
 				acum = acum +1 
 			tOP['parallelLoops'] = loopNest[0]
+			tOP['parallelSize'] = loopNest[1]
 
 			for i in range(len(reduction[0])):
 				
@@ -197,6 +198,7 @@ class Transform:
 				acum = acum +1 
 
 			tOP['reductionLoops'] = reduction[0]
+			tOP['reductionSize'] = reduction[1]
 
 			for j in range(acum):
 				loopGen = loopGen + '\t'

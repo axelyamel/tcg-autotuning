@@ -3,8 +3,9 @@ import datetime
 
 class CodeGen:
 
-	def __init__(self,transOps):
+	def __init__(self,transOps,annot):
 
+		self.Annotation = annot
 		self.transformOP = transOps
 		self.transOP = self.transformOP.getTransOp()
 		self.inFile = self.transformOP.getInputFile()
@@ -21,10 +22,13 @@ class CodeGen:
 		self.body = ''
 		
 		
-		for key,value in self.Defines.items():
+		#for key,value in self.Defines.items():
 
-			self.code = self.code + '#define ' + key + ' ' + str(value) + '\n'
+		#	self.code = self.code + '#define ' + key + ' ' + str(value) + '\n'
+		
 		self.code = self.code + '\nvoid ' + self.funcName + '('
+
+
 
 		ins = ''
 		outs = ''
@@ -51,7 +55,15 @@ class CodeGen:
 
 		self.code = self.code + outs + ins
 
-		self.code = self.code[:-2] + '){\n\n\tint '
+		self.code = self.code[:-2] + '){\n\n'
+
+
+		self.code = self.code + self.Annotation
+
+
+		self.code = self.code + '\n\n\tint '
+
+
 
 		for i in self.Index:
 			self.code = self.code + i + ', '
@@ -67,11 +79,17 @@ class CodeGen:
 	
 		if acum == 1:
 			self.body = self.body + '\t}\n'
-		self.code = self.code + self.body + '}'
+
 
 		
+		self.CloseA = ''
+		if self.Annotation != '':
+
+			self.CloseA = self.CloseA + '/*@ end @*/   // CHiLL\n\n/*@ end @*/   // PerfTuning'
 
 
+
+		self.code = self.code + self.body + self.CloseA + '\n}'
 		
 	def printCode(self):
 		print self.code

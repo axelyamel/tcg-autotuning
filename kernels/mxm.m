@@ -2,9 +2,9 @@ mxm
 define:
 	N = 1024
 variables:
-	a:order2
-	b:order2
-	c:order2
+	a:(N,N)
+	b:(N,N)
+	c:(N,N)
 operations:
 	c:(i,j) += a:(i,k) * b:(k,j)
 

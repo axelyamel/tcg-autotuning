@@ -1,7 +1,7 @@
 from InputFile import *
 from Transform import *
 from CodeGen import *
-from Autotuning import *
+from Orio import *
 
 import sys
 import os
@@ -19,6 +19,8 @@ if sys.argv[1] == '-h':
 	print "\t-s\t\t | \tSpecify output script"
 	print "\t-no_auto\t | \tPrevent Autotuning"
 	print "\t-g\t\t | \tPrint Generated Code and Script"
+	print "\t-compiler\t | \tSet compiler, use values GNU or PGI (default = GNU)"
+	print "\t-reps\t | \tSet amount of tests per Kernel (default = 100)"
 	print "\t-h\t\t | \tThis help"
 	sys.exit()
 	
@@ -36,6 +38,10 @@ wrongFile = 0
 printCode = 0
 OutputFile = ''
 OutputScript = ''
+Annotation = ''
+reps = '100'
+compiler = 'GNU'
+
 for i in range(len(sys.argv)):
 	if i>0:
 		if sys.argv[i] == '-i':
@@ -58,6 +64,8 @@ for i in range(len(sys.argv)):
 			print "\t-s\t\t | \tSpecify output script"
 			print "\t-no_auto\t | \tPrevent Autotuning"
 			print "\t-g\t\t | \tPrint Generated Code and Script"
+			print "\t-compiler\t | \tSet compiler, use values GNU or PGI (default = GNU)"
+			print "\t-reps\t | \tSet amount of tests per Kernel (default = 100)"
 			print "\t-h\t\t | \tThis help"
 			sys.exit()
 	
@@ -67,10 +75,18 @@ for i in range(len(sys.argv)):
 			print "Output file specified: ",OutputFile
 
 	
+		if sys.argv[i] == '-reps':
+			reps = sys.argv[i+1]
+			print "Number of tests per kernel: ",reps
+
 		if sys.argv[i] == '-s':
 			OutputScript = sys.argv[i+1]
 			outscript = 1
 			print "Output script specified: ",OutputScript
+
+		if sys.argv[i] == '-compiler':
+			compiler = sys.argv[i+1]
+			print "Compiler set as: ",compiler
 
 
 		if os.path.isfile(sys.argv[i]):
@@ -109,23 +125,22 @@ if info == 1:
 	transOP.printInfo()
 	print "\n\n"
 
+if autotune == 1:
+	print "\nGenerating Orio Annotation"
+	auto = Orio(transOP,reps,compiler)
+	if info == 1:
+		auto.printInfo()
+	if printCode == 1:
+		auto.printScript()
+	Annotation = auto.getAnnotation()
+
 if codegen == 1:
 	print "Generating Code"
-	code = CodeGen(transOP)
+	code = CodeGen(transOP,Annotation)
 	if printCode == 1:
 		code.printCode()
 
 	code.OutToFile(OutputFile)
 	print "Output file: ",OutputFile
 
-
-if autotune == 1:
-	print "\nGenerating CUDA-CHiLL scripts"
-	auto = Autotuning(transOP)
-	if info == 1:
-		auto.printInfo()
-	if printCode == 1:
-		auto.printScript()
-	auto.OutToFile(OutputScript)
-	print "\nOutput Script: ",OutputScript
 
