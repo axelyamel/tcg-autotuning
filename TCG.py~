@@ -72,7 +72,7 @@ for i in range(len(sys.argv)):
 			print "\t-g\t\t | \tPrint Generated Code and Script"
 			print "\t-compiler\t | \tSet compiler, use values GNU or PGI (default = GNU)"
 			print "\t-reps\t | \tSet amount of tests per Kernel (default = 100)"
-			print "\t-Orio\t | \tCall Orio to process the generated file (not default)"
+			print "\t-Orio\t | \tCall Orio to process the generated file (no default)"
 			print "\t-h\t\t | \tThis help"
 			sys.exit()
 	

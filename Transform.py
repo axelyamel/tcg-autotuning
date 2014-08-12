@@ -63,6 +63,25 @@ class Transform:
 			tSize2.append(sizeI2)
 
 
+			OutsizeT = 1
+			InSizeT = 1
+
+			for i in tSize2[0]:
+				sizeTempI = filter(None,re.split('(\*|\+|\-|\/)',i))
+				for j in sizeTempI:
+					if j != '*':
+						OutsizeT = OutsizeT * int(self.defines[j])
+						
+			for k in range(1,len(tSize2)):
+				InSizeT = 1
+				for i in tSize2[k]:
+					sizeTempI = filter(None,re.split('(\*|\+|\-|\/)',i))
+					for j in sizeTempI:
+						if j != '*':
+							InSizeT = InSizeT * int(self.defines[j])
+
+				if InSizeT == OutsizeT:
+					tSize2[k] = tSize2[0]
 
 
 			newOP = ''
@@ -199,6 +218,8 @@ class Transform:
 
 			tOP['reductionLoops'] = reduction[0]
 			tOP['reductionSize'] = reduction[1]
+
+			print loopGen
 
 			for j in range(acum):
 				loopGen = loopGen + '\t'

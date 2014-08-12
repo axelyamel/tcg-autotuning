@@ -15,8 +15,8 @@ class CodeGen:
 		self.access = self.inFile.getAccess()
 		self.Index = self.transformOP.getLoopsIndeces()
 		now = datetime.datetime.now()
-
-		self.Stamp = '/*This code was generated using the Tensor-Contraction Autotuning tool,\ndeveloped by Axel Y. Rivera (University of Utah).\nCode Generated Date and hour: ' + now.strftime("%Y-%m-%d %H:%M") + '*/\n\n'
+		self.Stamp = ''
+		#self.Stamp = '/*This code was generated using the Tensor-Contraction Autotuning tool,\ndeveloped by Axel Y. Rivera (University of Utah).\nCode Generated Date and hour: ' + now.strftime("%Y-%m-%d %H:%M") + '*/\n\n'
 		self.code = self.Stamp
 		self.func = ''
 		self.body = ''

@@ -1,4 +1,4 @@
-c_std_s1_1
+c_std_d1_1
 access: linearize
 memory: column
 pattern: strided
