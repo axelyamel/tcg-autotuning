@@ -124,10 +124,10 @@ Files:
 
 Install:
 	
-	Install CUDA,Orio and CUDA-CHiLL for use the output.
-	Make sure the desired compiler (GNU or PGI) is installed before use.
 	Install cx-Freeze
 	Type: sudo python setup.py install
+
+	If you want to use Orio, make sure that CUDA-CHiLL, Orio and CUDA are installed.
 
 	CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
 	Orio Link: http://trac.mcs.anl.gov/projects/performance/wiki/Orio
