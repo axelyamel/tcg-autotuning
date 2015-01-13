@@ -1,0 +1,12 @@
+mxm
+access: linearize
+define:
+	N = 10
+	M = 10
+variables:
+	A:(N,M)
+	B:(N,M)
+	C:(M,N)
+operations:
+	C:(i,j) += A:(i,k)*B:(k,j)
+

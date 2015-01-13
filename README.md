@@ -1,9 +1,7 @@
-Tensor-Contraction Generator and Autotuning
-===========================================
+Tensor contraction Representation
+=================================
 
-The Tensor-Contraction generator is a Python program that generates C code based on a simplified input. The TCG input is based on the Tensor-Contration Engine and Build To Order BLAS to create a simple interface that can be extended to every single user.
-
-The core of this framework is to generate CUDA code that run in NVIDIA GPUs. This code contains loop transformations, created by using Autotuning techniques, to achieve performance and better use of the features provided by the device. This is done by generating annotation for the CUDA-CHiLL module available in Orio, which are annotations that presents the transformations to be perform over a C code and produce CUDA code. The output of this program can be used with Orio (http://trac.mcs.anl.gov/projects/performance/wiki/Orio).
+The tensor contraction representation is a Python program that generates C code based on a simplified input. It adds an annotion to the code which will be used by Orio Performance-Tuning system for applying autotuning. The goal of this interface is to generate CUDA code that run in NVIDIA GPUs. This code contains loop transformations, created by a decision algrothim, to achieve better performance and use the features available in the device. The output of this program can be used with Orio (http://trac.mcs.anl.gov/projects/performance/wiki/Orio).
 
 Developer:
 
@@ -12,6 +10,22 @@ Developer:
 	axel.rivera at utah.edu
 
 Updates:
+
+	v0.625:Minor update to the Main function for errors handling, e.g. wrong file type.
+	       Added "-h" flag for help option. This flag show the new stuffs like
+		specify compiler, compiler flags, among others. Everyting between 
+		brackets ([]) means that is the default value.
+	       Updated some bugs related to the annotation generator.
+	       Installer that use cx_freeze added for simplified use.
+	    
+
+	v0.62: Huge update in the structure. Support for multiple multiplications. 
+       	       Increase the search space. Fixes on decision algorithm. Better 
+		object orientation implementations. Due to the massive update, the 
+                automatic Orio was removed temporary, as well the compiler specification.
+               Main file still a WIP. File type for input file changed from .m to .oct 
+                (output still .c).
+
 
 	v0.50: A tensor of order N can be used with other orders while it have the same
 		data size (see example kernels/nek.m), only works for linearized access
@@ -29,6 +43,7 @@ Updates:
 	       Added support to specify the compiler to be used (GNU or PGI)
 	       Added support to specify the amount of tests to be performed.
 
+
 	v0.452:Fixed Copy to registers not having the statement.
 	       Fixed tile_by_index not having the statement index.
 	       If there is more than one operation with the same the outer most loop index,
@@ -36,6 +51,7 @@ Updates:
 	       
 
 	v0.451:Fixed minor bug in the CUDA-CHiLL script output at the cudaize level
+
 
 	v0.45: Added Naive Autotuning which parries CUDA Threads, Blocks, Registers as well 
 		perform	Permutation depending on loop indeces, data access and memory (row 
@@ -49,6 +65,7 @@ Updates:
 		inputs.
 	       Matrix-Vector multiplication example added.
 
+
 	v0.4:  Massive update to the data structure to improve performance and memory handling.
 	       Cleaner implementation using Python Dictionaries.
     	       Fixed the tab and spaces in the input. Now user can use tab, spaces or non of
@@ -61,9 +78,11 @@ Updates:
 	       Transformed operations now only show the output operation rather than the full 
 		loop nest for a cleaner screen.
 	       Stamp added to the output code.
+
 	       
 	v0.3:  Very naive CUDA-CHiLL scripts generation added: just check the loop access and
 		decides what goes for threads, blocks, register and permute.
+
 
 	v0.25: Support for higher abstraction.
 	       User can now define a Tensor by the order without specify the dimensions' sizes.
@@ -72,6 +91,7 @@ Updates:
 	       "io" sectiond added, this is for declaring tensors that are input as well outputs. 
 		This section was created due to the definition of Input and Ouput.
 	       Fixed bugs in the output code where a variable was input and output.
+
 	
 	v0.2:  Support for higher abstraction. 
 	       Specify the values of access, memory, pattern and define section.
@@ -80,53 +100,64 @@ Updates:
 	       Fixed bugs in output code.
 	       Fixed bugs in input arguments.
 
+
 	v0.15: Arguments for handling help, wrong input file, printing information, prevent code 
 		generation and specifying output file name.
 	       Pattern variable added in the input file for handling access data: contigous 
 		(matrix multiply like) or jumping (dependant of loop upper bound: j+Jb*(i+Ib)).
 	       Reduction loop fixes when specifying column major order.
+
 	
 	v0.1:  First implementation, read a file and transform code.
 	       Early alpha stage (not recomended for use).
 		
 Files:
 
-	TCG.py			|	Main file
-	InputFile.py		|	Module for handling the Input File
-	Transform.py		|	Module for handling code transformation
-	CodeGen.py		|	Module for handling code generation
-	Autotuning.py		|	Module for handling Autotuning (not save)
+	tcr.py			|	Main file
+	src:			|	Directory for Source codes
+		InputFile.py	|	Module for handling the Input File
+		CodeGen.py	|	Module for handling code generation
+		Decision.py	|	Module for handling Autotuning 
 	kernels:		|	Directory with examples
-		mxm.m		|	Classic matrix multiply
-		nek.m		|	TC in Nekbone
-		tce.m		|	TC d1 presented in NWCHEM
-		tce2.m		|	TC s1 presented in NWCHEM
+		test_SPEM	|	Directory with spectral element examples	
+		test_tce	|	Directory with CCSD d1 examples
 
 Install:
-
-	usage: python TCG.py [flags] filename.m
 	
 	Install CUDA,Orio and CUDA-CHiLL for use the output.
 	Make sure the desired compiler (GNU or PGI) is installed before use.
+	Install cx-Freeze
+	Type: sudo python setup.py install
 
 	CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
 	Orio Link: http://trac.mcs.anl.gov/projects/performance/wiki/Orio
 	NVIDIA CUDA Link: https://developer.nvidia.com/cuda-downloads
 
-Use:
+Usage: 
 
-	Usage: python TCG.py [flags] filename.m [-o filename.c]
-	Flags:
-		-i		 | 	Print information
-		-no_code	 | 	Prevent Code Generation
-		-s		 |	Specify output script
-		-no_auto	 |	Prevent Autotuning
-		-g		 |	Print Generated Code and Script
-		-o		 | 	Specify output filename
-		-reps		 |	Specify the amount of repetitions to be performed on each kernel
-		-Orio		 |	Call Orio to process the generated file (not default)
-		-compiler	 |	Specify	the compiler to be used by Orio, values are GNU or PGI (default = GNU)
-		-h		 | 	Help
+	Type: tcr filename.oct [OPTIONS]
+
+	Options:
+
+		 -h 	 Help print
+
+		 Code generation options:
+			 -search=STRATEGY 	 Orio search-space study strategy 
+						 STRATEGY=[Exahustive] or Mlsearch
+			 -arch=ARCH 		 Specify type of architecture 
+						 ARCH=[x86_64] or x86
+			 -reps=N 		 Specify the ammount of repetitions for tests 
+						 N=[100] or integer
+
+		 Compiler options:
+			 CXX 			 Specify the C++ compiler 
+						 CXX=[g++] or prefered compiler
+			 CFLAGS 		 Specify the C++ compiler flags 
+						 CFLAGS =["-O3"] or "list of flags"
+			 CUDA 			 Specify where are located the CUDA files 
+						 CUDA=[/usr/local/cuda] or prefered path
+
+
 
 Input file:
 
@@ -138,57 +169,55 @@ Input file:
 
 
 	function name				-- Name of the function (mandatory first)
-	access: multidimension | linearize	--(optional)default: multidimension	[i][j] | [i*N+j]
-	accelerator: GPU			--(optional)default: GPU		For future work
-	memory: row | column			--(optional)default: row		Row or Column major
-	pattern: contigous | strided		--(optional)default: contigous		Access pattern
-	define:					-- (Optional)Define variables 
+	access: [multidimension] | linearize	--(optional) [i][j] | [i*N+j]
+	memory: [row] | column			--(optional) Row or Column major
+	pattern: [contigous] | strided		--(optional) Access pattern
+	define:					--(optional) Define variables 
 		var1 = val
 		var2 = val
-		    *
-   		    *
-		    *
+		    .
+   		    .
+		    .
 		varN = val
 	variables:					-- Define input and output data with sizes
 		Ti1:(size1, ... ,sizeN)	| orderN	
-		    *
-		    *
-		    *
+		    .
+		    .
+		    .
 		Tin:(size1, ..., sizeN) | orderN
 		To1:(size1, ... ,sizeN) | orderN		
-		    *
-		    *
-		    *
+		    .
+		    .
+		    .
 		Ton:(size1, ..., sizeN) | orderN
 	operations:				-- Define the Tensor-Contraction to be done with loop indices
 						-- Assignment: += | -=
-						-- Operator: + | - | * | /
+						
 
-		ToX1(l1r, ..., lNs) [assingment] TiY1(l1t, ...,lNt) [operator] TiZ1(l1s,...,lNs)
-							*
-							*
-							*
-		ToX1(l1r, ..., lNs) [assingment] TiY1(l1t, ...,lNt) [operator] TiZ1(l1s,...,lNs)
+		ToX1(l1r, ..., lNs) [assingment] TiY1(l1t, ...,lNt) * TiZ1(l1s,...,lNs)
+							.
+							.
+							.
+		ToX1(l1r, ..., lNs) [assingment] TiY1(l1t, ...,lNt) * TiZ1(l1s,...,lNs)
 
 Notes:
 
 	Use the C Compound assignment (+=) to express reductions. It represents the classical
 	summation symbol in mathematics. This is used to represent the Einstein's Notation
 	for Tensors.
-	Each operation is binary (one output and two inputs) due to the definition of 
-	Tensor-Contraction.
-	Autotuning still a work in progress, output will be naive and only oriented for
-	small sizes problems.
+	Decision Algorithm produces a huge search space, if you are using exhaustive search
+	to study , this test will take a while.
 	The output will only produce variables of "double" type. Future update will introduce
 	type definitions.
 	Even though the framework works without defining the dimension's sizes, for better 
-	use of autotuning specify the dimension's sizes.
+	use of autotuning, please specify the dimension's sizes.
 					
 Known bugs:
 
 	No explicit form of commenting a line (user must delete it).
-	Code generation works only with tensors of order1 or higher.
-	Autotuning works only for tensor of order2 or higher.
+	Code generation works only with tensors of order_1 (arrays) or higher.
 	When using more than one operations, keep the same index variables from outer to inner.
+	Any bug you find, please report it into the gibhub link.
+
 
 
