@@ -2,7 +2,7 @@ from CodeGen import *
 
 class Decision(CodeGen):
 
-	def __init__(self,filename,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS):
+	def __init__(self,filename,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS,SRUNS):
 
 		CodeGen.__init__(self,filename)
 
@@ -15,6 +15,9 @@ class Decision(CodeGen):
 		self.OrioAnnot['permute'] = []
 		self.OrioAnnot['unrolls'] = []
 		self.OrioAnnot['stm'] = []
+        
+                self.OrioAnnot['constraints'] = ''
+
 		stm = 0
 
 		print 'Running decision Algorithm for: '+ self.FuncName
@@ -75,13 +78,13 @@ class Decision(CodeGen):
 			tx = ''
 			if len(ThreadX) > 1:
 
-				tx = '['
+				#tx = '['
 				for i in ThreadX:
-					tx += '\"' + i + '\",'
-				tx = tx[:-1] + ']'
+					tx += '\'' + i + '\','
+				tx = tx[:-1]
 
 			else:
-				tx = '[\"' + ThreadX[0] + '\"]'
+				tx =  '\'' + ThreadX[0] + '\''
 
 				TB = []
 				for j in range(len(Indices[0])-1,-1,-1):
@@ -90,28 +93,58 @@ class Decision(CodeGen):
 				while(len(TB)<4):
 				    TB.append('1')
 					
-			self.OrioAnnot['params'].append('param TX' + str(stm) + '[] = ' + tx + ';')
+			self.OrioAnnot['params'].append('param TX' + str(stm) + '[] = [' + tx + '];')
 
                         TB=list(set(TB))
                         
 
-			TBx = '['
+			TBx = ''
 			for i in TB:
-				TBx += '\"' + i + '\",'
-			TBx = TBx[:-1] + ']'
+				TBx += '\'' + i + '\','
+			TBx = TBx[:-1]
 
-                        BXx = TBx.replace(",\"1\"","")
+                        BXx = TBx.replace(",\'1\'","")
+                        BXx = BXx.replace("\'1\',","")
                         TYx = TBx
                         BYx = TBx
                         if len(Indices[0]) < 3:
-                            TYx = "[\"1\"]"
+                            TYx = "\'1\'"
                             BYx = TYx
 
-			self.OrioAnnot['params'].append('param TY' + str(stm) + '[] = ' + TYx + ';')
-			self.OrioAnnot['params'].append('param BX' + str(stm) + '[] = ' + BXx + ';')
-			self.OrioAnnot['params'].append('param BY' + str(stm) + '[] = ' + BYx + ';')
+                        consts = []
 
-			self.OrioAnnot['cuda'].append('cuda('+str(stm)+',block={BX'+ str(stm) + ',BY' + str(stm) + '},thread={TX'+str(stm)+',TY' + str(smt)+'})')
+                        consts.append(filter(None,re.split('\,',tx)))
+                        consts.append(filter(None,re.split('\,',TYx)))
+                        consts.append(filter(None,re.split('\,',BXx)))
+                        consts.append(filter(None,re.split('\,',BYx)))
+
+
+                        constrains = ''
+                        switches = [' != ',' != ', ' != ', ' != ']
+                        acum = 1
+
+                        for c in consts:
+
+                            if len(c) > 1:
+                                constrains += '   constraint L' + str(stm) + str(acum) + ' ='
+                                switches[acum-1] = ' == '
+                           
+                                for i in c:
+
+                                    constrains += ' ((TX'+str(stm)+ switches[0] + i + ' and ' + 'TY'+str(stm)+ switches[1] + i + ' and ' + 'BX'+str(stm)+ switches[2] + i + ' and ' + 'BY'+str(stm)+ switches[3] + i + ')) or \n \t\t   ' 
+
+
+                                switches[acum-1] = ' != ' 
+                                constrains = constrains[:-11] + ';\n\n' 
+                            acum += 1
+
+                        self.OrioAnnot['constraints'] += constrains
+
+			self.OrioAnnot['params'].append('param TY' + str(stm) + '[] = [' + TYx + '];')
+			self.OrioAnnot['params'].append('param BX' + str(stm) + '[] = [' + BXx + '];')
+			self.OrioAnnot['params'].append('param BY' + str(stm) + '[] = [' + BYx + '];')
+
+			self.OrioAnnot['cuda'].append('cuda('+str(stm)+',block={BX'+ str(stm) + ',BY' + str(stm) + '},thread={TX'+str(stm)+',TY' + str(stm)+'})')
 
 			self.OrioAnnot['reg'].append('registers('+ str(stm) +',\"'+summations[0] + '\")')
 
@@ -156,10 +189,10 @@ class Decision(CodeGen):
 
 			stm += 1
 			
-		self.buildAnnotation(stm,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS)
+		self.buildAnnotation(stm,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS,SRUNS)
 
 
-	def buildAnnotation(self,stmAmmount,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS):
+	def buildAnnotation(self,stmAmmount,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS,SRUNS):
 
                 cuLibs ='/lib'+ARCH
                 comp = CXX + ' ' + FLAGS
@@ -176,13 +209,15 @@ class Decision(CodeGen):
 			annotation += '   ' + values + '\n'
 
 
-		annotation += ' }\n def input_params {\n'
+                annotation += '\n' + self.OrioAnnot['constraints']
+		annotation += '\n }\n def input_params {\n'
 
 		for values in self.InputFile['define']:
 
 			val = filter(None,re.split('=',values))
 
 			annotation += '   param ' + val[0] + '[] = [' + str(val[1]) + '];\n'
+
 
 		annotation += ' }\n  def input_vars {\n'
 
@@ -192,7 +227,11 @@ class Decision(CodeGen):
 			val[1] = val[1].replace(',','*')
 			
 			annotation += '   decl dynamic double ' + val[0] + '[' + val[1] + '] = random;\n'
-		annotation += '}\n def search {\n   arg algorithm = \''+searchAlgo+'\';\n }\n   ) @*/\n/*@ begin CHiLL ( \n\n'
+		annotation += '}\n def search {\n   arg algorithm = \''+searchAlgo+'\';\n'
+                if SRUNS != '-1':
+                    annotation += '   arg total_runs = ' + SRUNS + ';'
+                    
+                annotation += '\n }\n   ) @*/\n/*@ begin CHiLL ( \n\n'
 
 		acum = 0
 

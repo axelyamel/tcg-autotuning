@@ -2,19 +2,40 @@ void c_std_d1_1(double *T2i,double *v2,double *T3)
 {
 /*@ begin PerfTuning ( 
 def build {
-   arg build_command = 'pgc++ -fast';
-   arg libs = 'rose__orio_chill_.o -I/usr/local/cuda-6.5/include -L/usr/local/cuda-6.5/lib64 -lcudart -lcuda -lm -lrt';
- }def performance_counter {
+   arg build_command = 'g++ -O3';
+   arg libs = 'rose__orio_chill_.o -I/usr/local/cuda/include -L/usr/local/cuda/lib64 -lcudart -lcuda -lm -lrt';
+ }
+ def performance_counter {
    arg repetitions = 100;
  }
  def performance_params {
-   param TX0[] = ["h3","h1"];
-   param TY0[] = ["h3","h2","h1","p6"];
-   param BX0[] = ["h3","h2","h1","p6"];
-   param BY0[] = ["h3","h2","h1","p6"];
+   param TX0[] = ['h3','h1'];
+   param TY0[] = ['h2','h3','h1','p6'];
+   param BX0[] = ['h2','h3','h1','p6'];
+   param BY0[] = ['h2','h3','h1','p6'];
 
 
    param UF_0[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+
+   constraint L01 = ((TX0 == 'h3' and TY0 != 'h3' and BX0 != 'h3' and BY0 != 'h3')) or 
+ 		    ((TX0 == 'h1' and TY0 != 'h1' and BX0 != 'h1' and BY0 != 'h1'));
+
+   constraint L02 = ((TX0 != 'h2' and TY0 == 'h2' and BX0 != 'h2' and BY0 != 'h2')) or 
+ 		    ((TX0 != 'h3' and TY0 == 'h3' and BX0 != 'h3' and BY0 != 'h3')) or 
+ 		    ((TX0 != 'h1' and TY0 == 'h1' and BX0 != 'h1' and BY0 != 'h1')) or 
+ 		    ((TX0 != 'p6' and TY0 == 'p6' and BX0 != 'p6' and BY0 != 'p6'));
+
+   constraint L03 = ((TX0 != 'h2' and TY0 != 'h2' and BX0 == 'h2' and BY0 != 'h2')) or 
+ 		    ((TX0 != 'h3' and TY0 != 'h3' and BX0 == 'h3' and BY0 != 'h3')) or 
+ 		    ((TX0 != 'h1' and TY0 != 'h1' and BX0 == 'h1' and BY0 != 'h1')) or 
+ 		    ((TX0 != 'p6' and TY0 != 'p6' and BX0 == 'p6' and BY0 != 'p6'));
+
+   constraint L04 = ((TX0 != 'h2' and TY0 != 'h2' and BX0 != 'h2' and BY0 == 'h2')) or 
+ 		    ((TX0 != 'h3' and TY0 != 'h3' and BX0 != 'h3' and BY0 == 'h3')) or 
+ 		    ((TX0 != 'h1' and TY0 != 'h1' and BX0 != 'h1' and BY0 == 'h1')) or 
+ 		    ((TX0 != 'p6' and TY0 != 'p6' and BX0 != 'p6' and BY0 == 'p6'));
+
+
  }
  def input_params {
    param tilesize[] = [16];
@@ -26,6 +47,7 @@ def build {
 }
  def search {
    arg algorithm = 'Exhaustive';
+
  }
    ) @*/
 /*@ begin CHiLL ( 

@@ -13,9 +13,9 @@ sys.path.append(path)
 from Decision import *
 
 
-def main(fileName,CUDA,CXX,FLAGS,OrioRun,searchAlgo,ARCH,REPS):
+def main(fileName,CUDA,CXX,FLAGS,OrioRun,searchAlgo,ARCH,REPS,SRUNS):
 
-    tensor = Decision(fileName,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS)
+    tensor = Decision(fileName,CUDA,CXX,FLAGS,searchAlgo,ARCH,REPS,SRUNS)
     annotation = tensor.getAnnotation()
     code = tensor.generate_code(annotation)
 
@@ -36,6 +36,7 @@ def print_help():
     print "\t\t -search=STRATEGY \t Orio search-space study strategy \n\t\t\t\t\t STRATEGY=[Exahustive] or Mlsearch"
     print "\t\t -arch=ARCH \t\t Specify type of architecture \n\t\t\t\t\t ARCH=[x86_64] or x86"
     print "\t\t -reps=N \t\t Specify the ammount of repetitions for tests \n\t\t\t\t\t N=[100] or integer"
+    print "\t\t -s_runs=N \t\t Specify the ammount of runs in the search algorithm \n\t\t\t\t\t N=[100] or integer"
     print "\n\t Compiler options:"
     print "\t\t CXX \t\t\t Specify the C++ compiler \n\t\t\t\t\t CXX=[g++] or prefered compiler"
     print "\t\t CFLAGS \t\t Specify the C++ compiler flags \n\t\t\t\t\t CFLAGS =[\"-O3\"] or \"list of flags\""
@@ -77,6 +78,7 @@ if __name__ == "__main__":
     CUDA = '/usr/local/cuda'
     ARCH='64'
     REPS = '100'
+    SRUNS= '-1'
 
     for i in sys.argv:
         if i == '-h':
@@ -89,7 +91,6 @@ if __name__ == "__main__":
                 print ('Error: Search space prunning technique not specified')
                 sys.exit()
             searchAlgo = search[1]
-
 
         if 'CXX' in i:
             comp = filter(None,re.split('=',i))
@@ -150,6 +151,24 @@ if __name__ == "__main__":
                     print ("Error: Repetitions should be an integer")
                     sys.exit()
 
+        if '-s_runs' in i:
+
+            amount = filter(None,re.split('=',i))
+            if len(amount) < 2:
+                print ("Error: Ammount of search runs is empty")
+                sys.exit()
+
+            else:
+                if amount[1].isdigit() == True:
+                    SRUNS = amount[1]
+                else:
+                    print ("Error: Value of s_runs should be an integer")
+                    sys.exit()
+
     
-    main(fileName,CUDA,CXX,FLAGS,OrioRun,searchAlgo,ARCH,REPS)
+    if searchAlgo != 'Exhaustive' and SRUNS == '-1':
+        print "Error: " + searchAlgo + " requires the specification runs (-s_runs)"
+        sys.exit()
+
+    main(fileName,CUDA,CXX,FLAGS,OrioRun,searchAlgo,ARCH,REPS,SRUNS)
 

@@ -11,7 +11,11 @@ Developer:
 
 Updates:
 
-	v0.625:Minor update to the Main function for errors handling, e.g. wrong file type.
+	v0.63: Orio constrains generated automatically.
+	       Option for specifying the ammoun of runs in the search algorithm.
+
+
+	v0.625:Minor update to the Main function for errors handling.
 	       Added "-h" flag for help option. This flag show the new stuffs like
 		specify compiler, compiler flags, among others. Everyting between 
 		brackets ([]) means that is the default value.
@@ -114,6 +118,8 @@ Updates:
 Files:
 
 	tcr.py			|	Main file
+	setup.py		|	Setup file
+	README.md		|	This file
 	src:			|	Directory for Source codes
 		InputFile.py	|	Module for handling the Input File
 		CodeGen.py	|	Module for handling code generation
@@ -121,17 +127,12 @@ Files:
 	kernels:		|	Directory with examples
 		test_SPEM	|	Directory with spectral element examples	
 		test_tce	|	Directory with CCSD d1 examples
+		test_mxm	|	Directory with MxM exmaples
 
 Install:
 	
-	Install cx-Freeze
+	Install cx-Freeze: sudo apt-get install cx-freeze
 	Type: sudo python setup.py install
-
-	If you want to use Orio, make sure that CUDA-CHiLL, Orio and CUDA are installed.
-
-	CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
-	Orio Link: http://trac.mcs.anl.gov/projects/performance/wiki/Orio
-	NVIDIA CUDA Link: https://developer.nvidia.com/cuda-downloads
 
 Usage: 
 
@@ -148,6 +149,10 @@ Usage:
 						 ARCH=[x86_64] or x86
 			 -reps=N 		 Specify the ammount of repetitions for tests 
 						 N=[100] or integer
+			 -s_runs=N 		 Specify the ammount of runs in the search algorithm 
+						 N=[100] or integer
+
+
 
 		 Compiler options:
 			 CXX 			 Specify the C++ compiler 
@@ -158,6 +163,11 @@ Usage:
 						 CUDA=[/usr/local/cuda] or prefered path
 
 
+	If you want to use Orio, make sure that CUDA-CHiLL, Orio and CUDA are installed.
+
+	CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
+	Orio Link: http://trac.mcs.anl.gov/projects/performance/wiki/Orio
+	NVIDIA CUDA Link: https://developer.nvidia.com/cuda-downloads
 
 Input file:
 

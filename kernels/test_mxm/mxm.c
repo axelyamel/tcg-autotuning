@@ -9,13 +9,23 @@ def build {
    arg repetitions = 100;
  }
  def performance_params {
-   param TX0[] = ["j","i"];
-   param TY0[] = ["1"];
-   param BX0[] = ["i","j"];
-   param BY0[] = ["1"];
+   param TX0[] = ['j','i'];
+   param TY0[] = ['1'];
+   param BX0[] = ['i','j'];
+   param BY0[] = ['1'];
 
 
    param UF_0[] = [1,2,3,4,5,6,7,8,9,10];
+
+   constraint L01 = ((TX0 == 'j' and TY0 != 'j' and BX0 != 'j' and BY0 != 'j')) or 
+ 		    ((TX0 == 'i' and TY0 != 'i' and BX0 != 'i' and BY0 != 'i'));
+
+
+   constraint L03 = ((TX0 != 'i' and TY0 != 'i' and BX0 == 'i' and BY0 != 'i')) or 
+ 		    ((TX0 != 'j' and TY0 != 'j' and BX0 == 'j' and BY0 != 'j'));
+
+
+
  }
  def input_params {
    param N[] = [10];
@@ -28,12 +38,13 @@ def build {
 }
  def search {
    arg algorithm = 'Exhaustive';
+   
  }
    ) @*/
 /*@ begin CHiLL ( 
 
 
-	cuda(0,block={BX0,BY0},thread={TX0,TY0})
+	cuda(0,block={BX0},thread={TX0})
 
 	registers(0,"k")
 	unroll(0,"k",UF_0)
