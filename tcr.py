@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, glob
 wdir = os.getcwd()
 path2=''
 if getattr(sys, 'frozen', False):
@@ -27,6 +27,11 @@ def main(fileName,CUDA,CXX,FLAGS,OrioRun,searchAlgo,ARCH,REPS,SRUNS):
 
     print 'Output generated in: ' + tensor.getFileName()
 
+
+    if OrioRun == True:
+
+        call_Orio(tensor.getFileName())
+
 def print_help():
     print "Tensor-contraction representation \nAxel Y. Rivera\nUniversity of Utah\n"
     print "Usage: tcr filename.oct [OPTIONS]\n"
@@ -37,12 +42,60 @@ def print_help():
     print "\t\t -arch=ARCH \t\t Specify type of architecture \n\t\t\t\t\t ARCH=[x86_64] or x86"
     print "\t\t -reps=N \t\t Specify the ammount of repetitions for tests \n\t\t\t\t\t N=[100] or integer"
     print "\t\t -s_runs=N \t\t Specify the ammount of runs in the search algorithm \n\t\t\t\t\t N=[100] or integer"
+    print "\t\t -Orio \t\t\t Launch Orio with the created file \n\t\t\t\t\t Warning: Make sure Orio is installed"
     print "\n\t Compiler options:"
     print "\t\t CXX \t\t\t Specify the C++ compiler \n\t\t\t\t\t CXX=[g++] or prefered compiler"
     print "\t\t CFLAGS \t\t Specify the C++ compiler flags \n\t\t\t\t\t CFLAGS =[\"-O3\"] or \"list of flags\""
     print "\t\t CUDA \t\t\t Specify where are located the CUDA files \n\t\t\t\t\t CUDA=[/usr/local/cuda] or prefered path"
     sys.exit()
     
+
+def call_Orio(fileName):
+
+    try:
+        cmd = 'orcc -v '+fileName
+        os.system(cmd)
+
+        bestfile = ''
+        bestTime = 1000000
+        acumAll = 0
+
+        for filename in glob.glob("./times/time_*"):
+
+                print filename
+
+                acum = 0
+                timesAcum = 0
+
+                f = open(filename)
+
+                for line in f:
+
+                        split1 = re.split(': | |\n',line)
+                        if len(split1) > 3 and split1[0] == 'Time':
+                                timesAcum = timesAcum + float(split1[5])
+                                acum = acum + 1
+
+                f.close()
+
+                if acum >0 and timesAcum>0:
+                        timesAcum = timesAcum / acum
+
+
+                        print "Result for: ",filename," = ",timesAcum
+                        if timesAcum < bestTime:
+                                bestfile = filename
+                                bestTime = timesAcum
+                                acumAll = acum
+
+        print "Best times: "
+        print "\t filename: ",bestfile
+        print "\t time: ",bestTime
+
+    except:
+            print "Error: Orio didn't run. Is it correctly installed?"
+
+        
 
 
 if __name__ == "__main__":
@@ -164,6 +217,10 @@ if __name__ == "__main__":
                 else:
                     print ("Error: Value of s_runs should be an integer")
                     sys.exit()
+
+        if '-Orio' in i:
+
+                OrioRun = True
 
     
     if searchAlgo != 'Exhaustive' and SRUNS == '-1':

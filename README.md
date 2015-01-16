@@ -13,6 +13,8 @@ Updates:
 
 	v0.63: Orio constrains generated automatically.
 	       Option for specifying the ammoun of runs in the search algorithm.
+	       Option for automatically launch Orio and output the best version
+		automatically (see Usage section).
 
 
 	v0.625:Minor update to the Main function for errors handling.
@@ -151,6 +153,8 @@ Usage:
 						 N=[100] or integer
 			 -s_runs=N 		 Specify the ammount of runs in the search algorithm 
 						 N=[100] or integer
+			 -Orio 			 Launch Orio with the created file 
+						 Warning: Make sure Orio is installed
 
 
 
@@ -165,7 +169,7 @@ Usage:
 
 	If you want to use Orio, make sure that CUDA-CHiLL, Orio and CUDA are installed.
 
-	CUDA-CHiLL Link: http://ctop.cs.utah.edu/downloads/chill_rose.tar.gz
+	CUDA-CHiLL Link: http://ctop.cs.utah.edu/ctop/?page_id=21
 	Orio Link: http://trac.mcs.anl.gov/projects/performance/wiki/Orio
 	NVIDIA CUDA Link: https://developer.nvidia.com/cuda-downloads
 
@@ -173,7 +177,7 @@ Input file:
 
 	Check folder kernels for some examples.
 
-	File type: filename.m
+	File type: filename.oct
 
 	File content  ("--" = means explanation, no needed in the input file):
 
